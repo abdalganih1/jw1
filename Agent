@@ -135,3 +135,16 @@ npm run lint
 - **العميل**: موقع عرض وبيع مجوهرات
 - **الاتجاه المختار**: الكلاسيكي الفاخر
 - **اللغة الأساسية**: العربية (RTL)
+
+---
+
+## ⚙️ Backend (FastAPI) Architecture Added
+- **Framework**: FastAPI
+- **Database**: MySQL (XAMPP) via SQLAlchemy (`jewelry_db`)
+- **Authentication**: JWT Tokens
+- **Key Modules Added**: 
+  - `auth`/`users`: Registration, Login, Profile.
+  - `products`: CRUD for Jewelers/Products, Categorization.
+  - `cart`/`orders`: Standard E-commerce flows.
+  - `ai`: **`/api/ai/generate-design`** using Google GenAI SDK (`gemini-3-pro-image-preview`).
+- **Dependencies**: `fastapi`, `uvicorn`, `sqlalchemy`, `pymysql`, `passlib`, `google-genai`.
