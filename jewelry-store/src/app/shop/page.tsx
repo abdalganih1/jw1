@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { products } from '@/data/products';
+import { products as mockProducts } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import FilterSidebar from '@/components/FilterSidebar';
 import { ProductCardSkeleton } from '@/components/Skeleton';
@@ -18,10 +18,46 @@ function ShopContent() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 15000]);
   const [sortBy, setSortBy] = useState(sortParam || 'popular');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [productsData, setProductsData] = useState<any[]>(mockProducts);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/products/`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedProducts = data.map((p: any) => ({
+            id: String(p.id),
+            name: p.name,
+            nameAr: p.name,
+            description: p.description,
+            descriptionAr: p.description,
+            price: p.price,
+            originalPrice: p.price * 1.2,
+            category: p.categories && p.categories.length > 0 ? (p.categories[0].id === 1 ? 'rings' : p.categories[0].id === 2 ? 'necklaces' : 'bracelets') : 'rings',
+            metal: 'gold',
+            stone: 'diamond',
+            images: p.images && p.images.length > 0 ? p.images.map((img: any) => img.image_path) : ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'],
+            inStock: p.stock_quantity > 0,
+            rating: 5.0,
+            reviews: 0,
+            isNew: true,
+            isBestSeller: false,
+            sizes: ['6', '7', '8'],
+            weight: p.weight || 0
+          }));
+          setProductsData(mappedProducts);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching products:", err);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...productsData];
 
     if (selectedCategory) {
       result = result.filter(p => p.category === selectedCategory);
@@ -56,13 +92,13 @@ function ShopContent() {
   }, [selectedCategory, selectedMetals, selectedStones, priceRange, sortBy]);
 
   const handleMetalChange = (metal: string) => {
-    setSelectedMetals(prev => 
+    setSelectedMetals(prev =>
       prev.includes(metal) ? prev.filter(m => m !== metal) : [...prev, metal]
     );
   };
 
   const handleStoneChange = (stone: string) => {
-    setSelectedStones(prev => 
+    setSelectedStones(prev =>
       prev.includes(stone) ? prev.filter(s => s !== stone) : [...prev, stone]
     );
   };
@@ -76,16 +112,16 @@ function ShopContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9f7]">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0d0a0e 0%, #110d15 50%, #0a0810 100%)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8" dir="rtl">
           <div>
-            <h1 className="text-3xl font-display font-bold text-gray-900">المتجر</h1>
-            <p className="text-gray-600 mt-1">{filteredProducts.length} منتج</p>
+            <h1 className="text-3xl font-display font-bold text-white tracking-wide">المتجر</h1>
+            <p className="text-[#c9a962]/70 mt-1">{filteredProducts.length} منتج</p>
           </div>
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-gray-200"
+            className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-lg border border-[#c9a962]/30 text-[#c9a962] bg-[#c9a962]/10 text-sm"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -96,7 +132,7 @@ function ShopContent() {
 
         <div className="flex gap-8">
           <div className={`
-            fixed lg:relative inset-0 z-40 lg:z-auto bg-black/50 lg:bg-transparent
+            fixed lg:relative inset-0 z-40 lg:z-auto bg-black/70 lg:bg-transparent
             ${isFilterOpen ? 'block' : 'hidden'} lg:block
           `}>
             <div className={`
@@ -138,11 +174,11 @@ function ShopContent() {
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-16">
-                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-16 h-16 text-[#c9a962]/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">لم يتم العثور على منتجات</h3>
-                <p className="text-gray-600 mb-4">جرب تغيير معايير التصفية</p>
+                <h3 className="text-xl font-semibold text-white mb-2">لم يتم العثور على منتجات</h3>
+                <p className="text-white/50 mb-4">جرب تغيير معايير التصفية</p>
                 <button
                   onClick={handleClearFilters}
                   className="text-[#c9a962] font-medium hover:underline"
@@ -167,7 +203,7 @@ function ShopContent() {
 export default function ShopPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#faf9f7]">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #0d0a0e 0%, #110d15 50%, #0a0810 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (

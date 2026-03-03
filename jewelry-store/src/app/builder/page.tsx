@@ -75,16 +75,18 @@ export default function BuilderPage() {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [engraving, setEngraving] = useState('');
   const [giftWrap, setGiftWrap] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
   const calculatePrice = () => {
     if (!selectedType || !selectedMetal) return 0;
-    
+
     let price = basePrices[selectedType] || 0;
     price *= metalMultipliers[selectedMetal] || 1;
     price += stonePrices[selectedStone || 'none'] || 0;
     if (engraving) price += 150;
     if (giftWrap) price += 50;
-    
+
     return price;
   };
 
@@ -97,6 +99,7 @@ export default function BuilderPage() {
   };
 
   const getPreviewImage = () => {
+    if (generatedImage) return generatedImage;
     if (!selectedType) return jewelryTypes[0].image;
     if (selectedMetal && metalImages[selectedMetal]) {
       return metalImages[selectedMetal];
@@ -125,6 +128,57 @@ export default function BuilderPage() {
   const handlePrev = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleGenerateDesign = async () => {
+    setIsGenerating(true);
+    setGeneratedImage(null);
+    try {
+      const metalProps = {
+        'gold': { material: 'Gold', color: 'Yellow', karat: '18k' },
+        'silver': { material: 'Silver', color: 'Silver', karat: '925' },
+        'platinum': { material: 'Platinum', color: 'White', karat: '950' },
+        'rose-gold': { material: 'Gold', color: 'Rose', karat: '18k' }
+      }[selectedMetal || 'gold'];
+
+      const stoneProps = {
+        'diamond': { gemstone_type: 'Diamond', gemstone_color: 'Clear' },
+        'ruby': { gemstone_type: 'Ruby', gemstone_color: 'Red' },
+        'emerald': { gemstone_type: 'Emerald', gemstone_color: 'Green' },
+        'sapphire': { gemstone_type: 'Sapphire', gemstone_color: 'Blue' },
+        'pearl': { gemstone_type: 'Pearl', gemstone_color: 'White' },
+        'none': { gemstone_type: 'None', gemstone_color: 'None' },
+      }[selectedStone || 'none'];
+
+      const payload = {
+        type: selectedType || 'ring',
+        ...metalProps,
+        ...stoneProps,
+        shape: 'classic'
+      };
+
+      const token = localStorage.getItem('token'); // Assuming JWT token is stored here if user is logged in
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/ai/generate-design`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("Failed to generate pattern");
+      const data = await res.json();
+      // Ensure backend serves the image properly or provides a full URL
+      const imageUrl = data.generated_image_url.startsWith('http')
+        ? data.generated_image_url
+        : `http://127.0.0.1:8000/${data.generated_image_url}`;
+      setGeneratedImage(imageUrl);
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء التوليد. تأكد من تسجيل الدخول والمحاولة مرة أخرى.");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -161,11 +215,10 @@ export default function BuilderPage() {
                       <button
                         key={type.id}
                         onClick={() => setSelectedType(type.id)}
-                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                          selectedType === type.id 
-                            ? 'border-[#c9a962] ring-4 ring-[#c9a962]/20' 
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedType === type.id
+                            ? 'border-[#c9a962] ring-4 ring-[#c9a962]/20'
                             : 'border-gray-200 hover:border-[#c9a962]'
-                        }`}
+                          }`}
                       >
                         <Image
                           src={type.image}
@@ -199,19 +252,18 @@ export default function BuilderPage() {
                       <button
                         key={metal.id}
                         onClick={() => setSelectedMetal(metal.id)}
-                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
-                          selectedMetal === metal.id 
-                            ? 'border-[#c9a962] ring-4 ring-[#c9a962]/20' 
+                        className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${selectedMetal === metal.id
+                            ? 'border-[#c9a962] ring-4 ring-[#c9a962]/20'
                             : 'border-gray-200 hover:border-[#c9a962]'
-                        }`}
+                          }`}
                       >
                         <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200">
-                          <div 
+                          <div
                             className="absolute inset-4 rounded-full"
                             style={{
-                              background: metal.id === 'gold' 
-                                ? 'linear-gradient(135deg, #f7e8a0 0%, #c9a962 50%, #9a7b3c 100%)' 
-                                : metal.id === 'silver' 
+                              background: metal.id === 'gold'
+                                ? 'linear-gradient(135deg, #f7e8a0 0%, #c9a962 50%, #9a7b3c 100%)'
+                                : metal.id === 'silver'
                                   ? 'linear-gradient(135deg, #e8e8e8 0%, #c0c0c0 50%, #a8a8a8 100%)'
                                   : metal.id === 'platinum'
                                     ? 'linear-gradient(135deg, #e5e4e2 0%, #d1d0ce 50%, #b4b2b0 100%)'
@@ -243,18 +295,17 @@ export default function BuilderPage() {
                       <button
                         key={stone.id}
                         onClick={() => setSelectedStone(stone.id)}
-                        className={`p-4 rounded-lg border-2 transition-all text-center ${
-                          selectedStone === stone.id 
-                            ? 'border-[#c9a962] bg-[#c9a962]/10' 
+                        className={`p-4 rounded-lg border-2 transition-all text-center ${selectedStone === stone.id
+                            ? 'border-[#c9a962] bg-[#c9a962]/10'
                             : 'border-gray-200 hover:border-[#c9a962]'
-                        }`}
+                          }`}
                       >
-                        <div 
+                        <div
                           className="w-12 h-12 rounded-full mx-auto mb-2"
                           style={{
-                            background: stone.id === 'diamond' 
-                              ? 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%)' 
-                              : stone.id === 'ruby' 
+                            background: stone.id === 'diamond'
+                              ? 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #e0e0e0 100%)'
+                              : stone.id === 'ruby'
                                 ? 'linear-gradient(135deg, #ff6b6b 0%, #c0392b 50%, #8b0000 100%)'
                                 : stone.id === 'emerald'
                                   ? 'linear-gradient(135deg, #2ecc71 0%, #27ae60 50%, #1e8449 100%)'
@@ -283,11 +334,10 @@ export default function BuilderPage() {
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`px-6 py-3 rounded-lg border-2 transition-all font-medium ${
-                          selectedSize === size 
-                            ? 'border-[#c9a962] bg-[#c9a962] text-white' 
+                        className={`px-6 py-3 rounded-lg border-2 transition-all font-medium ${selectedSize === size
+                            ? 'border-[#c9a962] bg-[#c9a962] text-white'
                             : 'border-gray-200 hover:border-[#c9a962]'
-                        }`}
+                          }`}
                       >
                         {size}
                       </button>
@@ -394,9 +444,20 @@ export default function BuilderPage() {
                     التالي
                   </button>
                 ) : (
-                  <button className="flex-1 py-3 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors">
-                    أضف للسلة
-                  </button>
+                  <>
+                    <button
+                      onClick={handleGenerateDesign}
+                      disabled={isGenerating}
+                      className="flex-1 py-3 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors disabled:opacity-75 disabled:cursor-wait"
+                    >
+                      {isGenerating ? 'جاري التوليد (قد يستغرق بعض الوقت)...' : '✨ توليد تصميم بالذكاء الاصطناعي'}
+                    </button>
+                    {generatedImage && (
+                      <button className="flex-1 py-3 border-2 border-[#c9a962] text-[#c9a962] rounded-lg font-medium hover:bg-[#c9a962]/5 transition-colors">
+                        أضف للسلة
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

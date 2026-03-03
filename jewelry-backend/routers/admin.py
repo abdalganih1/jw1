@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-from ..database import get_db
-from ..models import User, Product, Category, Jeweler, Order, PaymentMethod
-from ..schemas import ProductCreate, ProductResponse, CategoryCreate, CategoryResponse, OrderResponse
-from ..routers.auth import get_current_user
+from database import get_db
+from models import User, Product, Category, Jeweler, Order, PaymentMethod
+from schemas import ProductCreate, ProductResponse, CategoryCreate, CategoryResponse, OrderResponse
+from routers.auth import get_current_user
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 

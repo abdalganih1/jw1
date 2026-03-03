@@ -1,8 +1,8 @@
 import os
 from sqlalchemy.orm import Session
-from .database import SessionLocal, engine, Base
-from .models import User, Jeweler, Category, PaymentMethod, Product
-from .core.security import get_password_hash
+from database import SessionLocal, engine, Base
+from models import User, Jeweler, Category, PaymentMethod, Product
+from core.security import get_password_hash
 
 def seed_database():
     print("Clearing database...")

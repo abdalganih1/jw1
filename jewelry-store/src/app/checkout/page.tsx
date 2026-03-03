@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
+  const [subtotal, setSubtotal] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -22,12 +26,65 @@ export default function CheckoutPage() {
     cardName: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Basic initialization: get cart total to show
+    const fetchCartTotal = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/cart/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          let sum = 0;
+          data.items.forEach((item: any) => sum += (item.product.price * item.quantity));
+          setSubtotal(sum);
+        }
+      } catch (e) { }
+    };
+    fetchCartTotal();
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < 3) {
       setStep(step + 1);
     } else {
-      alert('تم تأكيد الطلب بنجاح!');
+      setIsProcessing(true);
+      try {
+        const token = localStorage.getItem('token');
+        const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}, ${formData.country}`;
+        const payload = {
+          payment_method_id: formData.paymentMethod === 'card' ? 1 : formData.paymentMethod === 'mada' ? 2 : 3,
+          shipping_address: fullAddress,
+          transfer_receipt: null
+        };
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/orders/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          alert('تم تأكيد الطلب بنجاح! شكراً لتسوقكم معنا.');
+          router.push('/shop');
+        } else {
+          const errData = await res.json();
+          alert(`فشل الطلب: ${errData.detail || 'حدث خطأ غير متوقع'}`);
+        }
+      } catch (e) {
+        console.error(e);
+        alert('عذراً، لم نتمكن من معالجة الطلب.');
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -70,7 +127,7 @@ export default function CheckoutPage() {
             {step === 1 && (
               <div className="bg-white rounded-lg p-6 space-y-6">
                 <h2 className="text-lg font-semibold">معلومات الشحن</h2>
-                
+
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-1">الاسم الأول</label>
@@ -190,11 +247,10 @@ export default function CheckoutPage() {
                     { id: 'mada', label: 'مدى', icons: ['MADA'] },
                     { id: 'apple', label: 'Apple Pay', icons: [] },
                   ].map((method) => (
-                    <label 
+                    <label
                       key={method.id}
-                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${
-                        formData.paymentMethod === method.id ? 'border-[#c9a962] bg-[#c9a962]/5' : 'border-gray-200 hover:border-[#c9a962]'
-                      }`}
+                      className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${formData.paymentMethod === method.id ? 'border-[#c9a962] bg-[#c9a962]/5' : 'border-gray-200 hover:border-[#c9a962]'
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <input
@@ -317,9 +373,10 @@ export default function CheckoutPage() {
               )}
               <button
                 type="submit"
-                className="flex-1 py-3 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors"
+                disabled={isProcessing}
+                className="flex-1 py-3 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors disabled:opacity-50"
               >
-                {step === 3 ? 'تأكيد الطلب' : 'التالي'}
+                {isProcessing ? 'جاري المعالجة...' : (step === 3 ? 'تأكيد الطلب' : 'التالي')}
               </button>
             </div>
           </form>
@@ -331,15 +388,17 @@ export default function CheckoutPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">المجموع الفرعي</span>
-                  <span>{formatPrice(7500)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">الشحن</span>
-                  <span className="text-green-600">مجاني</span>
+                  <span className="text-green-600">{subtotal > 1000 || subtotal === 0 ? 'مجاني' : formatPrice(50)}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>الإجمالي</span>
-                  <span className="text-[#c9a962]">{formatPrice(7500)}</span>
+                  <span className="text-[#c9a962]">
+                    {formatPrice(subtotal + (subtotal > 1000 || subtotal === 0 ? 0 : 50))}
+                  </span>
                 </div>
               </div>
 

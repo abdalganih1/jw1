@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User, UserGeneratedDesign
-from ..schemas import AIDesignRequest, AIDesignResponse
-from ..routers.auth import get_current_user
+from database import get_db
+from models import User, UserGeneratedDesign
+from schemas import AIDesignRequest, AIDesignResponse
+from routers.auth import get_current_user
 import os
 import uuid
 import requests

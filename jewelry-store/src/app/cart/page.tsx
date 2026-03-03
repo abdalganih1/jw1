@@ -1,19 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { products } from '@/data/products';
+import { products as mockProducts } from '@/data/products';
 import Toast from '@/components/Toast';
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([
-    { productId: '1', quantity: 1, size: '7', engraving: '', giftWrap: false },
-    { productId: '3', quantity: 2, size: undefined, engraving: 'أحبك', giftWrap: true },
-  ]);
+  const [cartItems, setCartItems] = useState<any[]>([]);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
   const [toast, setToast] = useState({ isVisible: false, message: '' });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch Cart on mount
+  useEffect(() => {
+    const fetchCart = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setIsLoading(false);
+        return; // user not logged in, keep empty cart for now
+      }
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/cart/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Map backend cart items to component state
+          const items = data.items.map((item: any) => ({
+            id: item.id,
+            productId: String(item.product.id),
+            productData: item.product,
+            quantity: item.quantity,
+            size: undefined, // Backend schema doesn't have size/engraving directly in cart item yet
+            engraving: '',
+            giftWrap: false
+          }));
+          setCartItems(items);
+        }
+      } catch (e) {
+        console.error("Error fetching cart", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCart();
+  }, []);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -23,37 +58,52 @@ export default function CartPage() {
     }).format(price);
   };
 
-  const getItemTotal = (productId: string, quantity: number, engraving?: string, giftWrap?: boolean) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return 0;
-    let total = product.price * quantity;
-    if (engraving) total += 150;
-    if (giftWrap) total += 50;
+  const getItemTotal = (item: any) => {
+    const basePrice = item.productData ? item.productData.price : 0;
+    let total = basePrice * item.quantity;
+    if (item.engraving) total += 150;
+    if (item.giftWrap) total += 50;
     return total;
   };
 
-  const subtotal = cartItems.reduce((sum, item) => 
-    sum + getItemTotal(item.productId, item.quantity, item.engraving, item.giftWrap), 0
+  const subtotal = cartItems.reduce((sum, item) =>
+    sum + getItemTotal(item), 0
   );
 
   const discount = appliedCoupon === 'WELCOME10' ? subtotal * 0.1 : 0;
   const shipping = subtotal > 1000 ? 0 : 50;
   const total = subtotal - discount + shipping;
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
+  const updateQuantity = async (item: any, newQuantity: number) => {
     if (newQuantity < 1) {
-      removeItem(productId);
+      removeItem(item);
       return;
     }
-    setCartItems(items => 
-      items.map(item => 
-        item.productId === productId ? { ...item, quantity: newQuantity } : item
+
+    // Update locally first for fast UI
+    setCartItems(items =>
+      items.map(i =>
+        i.id === item.id ? { ...i, quantity: newQuantity } : i
       )
     );
+
+    // Attempt remote update or ignore if not supported by simple add/remove scheme
   };
 
-  const removeItem = (productId: string) => {
-    setCartItems(items => items.filter(item => item.productId !== productId));
+  const removeItem = async (item: any) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Backend supports DELETE /api/cart/items/{product_id}
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/cart/items/${item.productId}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    setCartItems(items => items.filter(i => i.id !== item.id));
     setToast({ isVisible: true, message: 'تم حذف المنتج من السلة' });
   };
 
@@ -76,7 +126,7 @@ export default function CartPage() {
           </svg>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">سلة التسوق فارغة</h1>
           <p className="text-gray-600 mb-6">أضف بعض المنتجات للبدء</p>
-          <Link 
+          <Link
             href="/shop"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#c9a962] text-white rounded-lg hover:bg-[#b8944f] transition-colors"
           >
@@ -95,16 +145,16 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4" dir="rtl">
             {cartItems.map((item) => {
-              const product = products.find(p => p.id === item.productId);
+              const product = item.productData;
               if (!product) return null;
 
               return (
-                <div key={item.productId} className="bg-white rounded-lg p-4 lg:p-6">
+                <div key={item.id} className="bg-white rounded-lg p-4 lg:p-6">
                   <div className="flex gap-4">
                     <Link href={`/product/${product.id}`} className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
                       <Image
-                        src={product.images[0]}
-                        alt={product.nameAr}
+                        src={product.images && product.images.length > 0 ? product.images[0].image_path : 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'}
+                        alt={product.nameAr || product.name || ''}
                         fill
                         className="object-cover rounded-lg"
                         sizes="128px"
@@ -114,13 +164,13 @@ export default function CartPage() {
                     <div className="flex-1 text-right">
                       <Link href={`/product/${product.id}`}>
                         <h3 className="font-semibold text-gray-900 hover:text-[#c9a962] transition-colors">
-                          {product.nameAr}
+                          {product.nameAr || product.name}
                         </h3>
                       </Link>
                       <p className="text-sm text-gray-500 mt-1">
-                        {product.metal === 'gold' ? 'ذهب' : product.metal === 'silver' ? 'فضة' : product.metal === 'platinum' ? 'بلاتين' : 'ذهب وردي'}
+                        {product.material === 'gold' ? 'ذهب' : product.material === 'silver' ? 'فضة' : product.material === 'platinum' ? 'بلاتين' : (product.material || '')}
                       </p>
-                      
+
                       {item.size && (
                         <p className="text-sm text-gray-500">المقاس: {item.size}</p>
                       )}
@@ -134,14 +184,14 @@ export default function CartPage() {
                       <div className="flex items-center justify-between mt-4">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                            onClick={() => updateQuantity(item, item.quantity - 1)}
                             className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:border-[#c9a962] transition-colors"
                           >
                             -
                           </button>
                           <span className="w-8 text-center">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                            onClick={() => updateQuantity(item, item.quantity + 1)}
                             className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:border-[#c9a962] transition-colors"
                           >
                             +
@@ -150,13 +200,13 @@ export default function CartPage() {
 
                         <div className="flex items-center gap-4">
                           <button
-                            onClick={() => removeItem(item.productId)}
+                            onClick={() => removeItem(item)}
                             className="text-red-500 hover:text-red-600 text-sm"
                           >
                             حذف
                           </button>
                           <span className="font-bold text-[#c9a962]">
-                            {formatPrice(getItemTotal(item.productId, item.quantity, item.engraving, item.giftWrap))}
+                            {formatPrice(getItemTotal(item))}
                           </span>
                         </div>
                       </div>

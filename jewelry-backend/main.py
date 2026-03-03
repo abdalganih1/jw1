@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .database import engine, Base
-from .routers import auth, products, cart, orders, ai, admin
+from database import engine, Base
+from routers import auth, products, cart, orders, ai, admin
 
 # Create tables if they don't exist
 Base.metadata.create_all(bind=engine)

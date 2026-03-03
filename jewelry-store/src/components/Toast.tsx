@@ -29,7 +29,7 @@ export default function Toast({ message, type = 'success', isVisible, onClose }:
 }
 
 export function useToast() {
-  const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' as const });
+  const [toast, setToast] = useState<{ isVisible: boolean; message: string; type: 'success' | 'error' | 'info' }>({ isVisible: false, message: '', type: 'success' });
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ isVisible: true, message, type });

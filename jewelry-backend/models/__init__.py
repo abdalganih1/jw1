@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime, timezone
 
-from ..database import Base
+from database import Base
 
 class OrderStatus(str, enum.Enum):
     PENDING = "PENDING"

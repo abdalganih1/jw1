@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from ..database import get_db
-from ..models import User
-from ..schemas import UserCreate, UserResponse, Token
-from ..core.security import verify_password, get_password_hash, create_access_token
-from jose import JWTError, jwt
+from database import get_db
+from models import User
+from schemas import UserCreate, UserResponse, Token
+from core.security import verify_password, get_password_hash, create_access_token
+import jwt
 import os
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -26,7 +26,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-    except JWTError:
+    except jwt.PyJWTError:
         raise credentials_exception
     user = db.query(User).filter(User.username == username).first()
     if user is None:

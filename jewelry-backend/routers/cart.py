@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
-from ..database import get_db
-from ..models import User, Cart, CartItem, Product
-from ..schemas import CartResponse, CartItemCreate, CartItemResponse
-from ..routers.auth import get_current_user
+from database import get_db
+from models import User, Cart, CartItem, Product
+from schemas import CartResponse, CartItemCreate, CartItemResponse
+from routers.auth import get_current_user
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/cart", tags=["cart"])

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from ..models import OrderStatus, DesignRequestStatus
+from models import OrderStatus, DesignRequestStatus
 
 # --- User Schemas ---
 class UserBase(BaseModel):
