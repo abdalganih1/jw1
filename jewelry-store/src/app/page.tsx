@@ -135,8 +135,9 @@ export default function Home() {
       </section>
 
       {/* ━━━━━━━━━━━━━━━━━━ صمّم قطعتك ━━━━━━━━━━━━━━━━━━ */}
-      <section className="py-16 lg:py-24 bg-[#1a1a1a] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 lg:py-24 bg-[#1a1a1a] text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c9a962]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative aspect-square max-w-lg mx-auto lg:mx-0">
               <Image
@@ -146,23 +147,32 @@ export default function Home() {
                 className="object-cover rounded-lg"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
+              <div className="absolute top-4 right-4 bg-[#c9a962] text-white text-sm px-4 py-2 rounded-full font-medium animate-bounce">
+                ✨ {t('بالذكاء الاصطناعي', 'AI Powered')}
+              </div>
             </div>
 
             <div className={lang === 'en' ? 'text-left' : 'text-right'}>
+              <div className="inline-flex items-center gap-2 bg-[#c9a962]/20 text-[#c9a962] px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+                {t('استوديو التصميم', 'Design Studio')}
+              </div>
               <h2 className="text-3xl lg:text-4xl font-display font-bold mb-6">
-                {t('صمّم قطعتك الخاصة', 'Design Your Own Piece')}
+                {t('صمّم قطعتك بالذكاء الاصطناعي', 'Design with AI')}
               </h2>
               <p className="text-gray-300 text-lg mb-8 leading-relaxed">
                 {t(
-                  'هل لديك تصور خاص لمجوهرات أحلامك؟ فريقنا من المصممين المحترفين جاهز لتحويل أفكارك إلى واقع.',
-                  'Do you have a vision for your dream jewelry? Our team of professional designers is ready to turn your ideas into reality.'
+                  'اختر المعدن، الحجر الكريم، الشكل واللون — ودع الذكاء الاصطناعي يحوّل رؤيتك إلى تصميم واقعي فائق الجودة.',
+                  'Choose the metal, gemstone, shape, and color — let AI transform your vision into a stunningly realistic design.'
                 )}
               </p>
               <ul className="space-y-4 mb-8">
                 {[
-                  t('استشارة مجانية مع مصمم خبير', 'Free consultation with an expert designer'),
-                  t('معاينة ثلاثية الأبعاد للتصميم', '3D preview of your design'),
-                  t('ضمان سنة على جميع القطع', 'One-year warranty on all pieces'),
+                  t('تحكم كامل بكل تفاصيل التصميم', 'Full control over every design detail'),
+                  t('توليد صورة واقعية بالذكاء الاصطناعي', 'AI-generated photorealistic image'),
+                  t('إرسال التصميم مباشرة للصائغ', 'Send design directly to a jeweler'),
                 ].map((item, i) => (
                   <li key={i} className={`flex items-center gap-3 ${lang === 'en' ? 'flex-row' : 'flex-row-reverse justify-end'}`}>
                     <span className="w-8 h-8 bg-[#c9a962] rounded-full flex items-center justify-center text-sm flex-shrink-0">✓</span>
@@ -172,9 +182,9 @@ export default function Home() {
               </ul>
               <Link
                 href="/builder"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#c9a962] text-white font-medium hover:bg-[#b8944f] transition-all duration-300 rounded-lg"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-[#c9a962] text-white font-medium hover:bg-[#b8944f] transition-all duration-300 rounded-lg shadow-lg shadow-[#c9a962]/20"
               >
-                {t('ابدأ التصميم', 'Start Designing')}
+                {t('ابدأ التصميم الآن', 'Start Designing Now')}
                 <svg className="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

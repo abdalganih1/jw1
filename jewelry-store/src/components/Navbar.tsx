@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ── بيانات الأقسام مع Mega Menu وصور ──────────────────────────────────
 const navCategories = [
@@ -279,6 +280,7 @@ const navCategories = [
 // ── المكوّن الرئيسي ──────────────────────────────────────────────────
 export default function Navbar() {
   const { lang, setLang } = useLanguage();
+  const { isAuthenticated } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
@@ -339,6 +341,15 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </Link>
+
+              {isAuthenticated && (
+                <Link href="/builder" className="flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-black/10 transition-colors animate-pulse" style={{ color: '#110d15' }} aria-label="صمّم تصميمك">
+                  <svg className="w-[16px] h-[16px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
+                  <span className="text-[11px] font-bold">صمّم</span>
+                </Link>
+              )}
 
               <Link href="/account" className="p-2 hover:text-white transition-colors" style={{ color: '#110d15' }} aria-label="حسابي">
                 <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

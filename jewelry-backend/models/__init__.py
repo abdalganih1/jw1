@@ -1,9 +1,26 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Enum, Text, JSON
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Boolean,
+    ForeignKey,
+    DateTime,
+    Enum,
+    Text,
+    JSON,
+)
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime, timezone
 
 from database import Base
+
+
+class UserRole(str, enum.Enum):
+    CUSTOMER = "CUSTOMER"
+    ADMIN = "ADMIN"
+
 
 class OrderStatus(str, enum.Enum):
     PENDING = "PENDING"
@@ -12,18 +29,20 @@ class OrderStatus(str, enum.Enum):
     DELIVERED = "DELIVERED"
     CANCELLED = "CANCELLED"
 
+
 class DesignRequestStatus(str, enum.Enum):
     PENDING = "PENDING"
     REVIEWED = "REVIEWED"
     ACCEPTED = "ACCEPTED"
     REJECTED = "REJECTED"
 
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
-    password = Column(String(255), nullable=False) # hashed
+    password = Column(String(255), nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
     first_name = Column(String(50))
     last_name = Column(String(50))
@@ -31,12 +50,14 @@ class User(Base):
     dob = Column(DateTime)
     gender = Column(String(10))
     address = Column(Text)
+    role = Column(Enum(UserRole), default=UserRole.CUSTOMER, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     carts = relationship("Cart", back_populates="user")
     orders = relationship("Order", back_populates="user")
     generated_designs = relationship("UserGeneratedDesign", back_populates="user")
     design_requests = relationship("DesignRequest", back_populates="user")
+
 
 class Jeweler(Base):
     __tablename__ = "jewelers"
@@ -54,6 +75,7 @@ class Jeweler(Base):
     products = relationship("Product", back_populates="jeweler")
     design_requests = relationship("DesignRequest", back_populates="jeweler")
 
+
 class PaymentMethod(Base):
     __tablename__ = "payment_methods"
 
@@ -65,6 +87,7 @@ class PaymentMethod(Base):
 
     orders = relationship("Order", back_populates="payment_method")
 
+
 class Category(Base):
     __tablename__ = "categories"
 
@@ -73,7 +96,9 @@ class Category(Base):
     parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
     parent = relationship("Category", remote_side=[id], backref="subcategories")
-    products = relationship("Product", secondary="product_categories", back_populates="categories")
+    products = relationship(
+        "Product", secondary="product_categories", back_populates="categories"
+    )
 
 
 class Product(Base):
@@ -91,16 +116,22 @@ class Product(Base):
     image_path = Column(String(255))
 
     jeweler = relationship("Jeweler", back_populates="products")
-    categories = relationship("Category", secondary="product_categories", back_populates="products")
-    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
+    categories = relationship(
+        "Category", secondary="product_categories", back_populates="products"
+    )
+    images = relationship(
+        "ProductImage", back_populates="product", cascade="all, delete-orphan"
+    )
     cart_items = relationship("CartItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
 
+
 class ProductCategory(Base):
     __tablename__ = "product_categories"
-    
+
     product_id = Column(Integer, ForeignKey("products.id"), primary_key=True)
     category_id = Column(Integer, ForeignKey("categories.id"), primary_key=True)
+
 
 class ProductImage(Base):
     __tablename__ = "product_images"
@@ -112,15 +143,23 @@ class ProductImage(Base):
 
     product = relationship("Product", back_populates="images")
 
+
 class Cart(Base):
     __tablename__ = "carts"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     user = relationship("User", back_populates="carts")
-    items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")
+    items = relationship(
+        "CartItem", back_populates="cart", cascade="all, delete-orphan"
+    )
+
 
 class CartItem(Base):
     __tablename__ = "cart_items"
@@ -133,6 +172,7 @@ class CartItem(Base):
     cart = relationship("Cart", back_populates="items")
     product = relationship("Product", back_populates="cart_items")
 
+
 class Order(Base):
     __tablename__ = "orders"
 
@@ -143,11 +183,16 @@ class Order(Base):
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
     total_amount = Column(Float, nullable=False)
     shipping_address = Column(Text)
-    transfer_receipt = Column(String(255)) # path to receipt image if paid via manual transfer
+    transfer_receipt = Column(
+        String(255)
+    )  # path to receipt image if paid via manual transfer
 
     user = relationship("User", back_populates="orders")
     payment_method = relationship("PaymentMethod", back_populates="orders")
-    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    items = relationship(
+        "OrderItem", back_populates="order", cascade="all, delete-orphan"
+    )
+
 
 class OrderItem(Base):
     __tablename__ = "order_items"
@@ -162,17 +207,22 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")
 
+
 class UserGeneratedDesign(Base):
     __tablename__ = "user_generated_designs"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    selected_options = Column(JSON) # e.g. {"type": "Ring", "color": "Gold", "gemstone": "Diamond"}
-    generated_image_url = Column(String(255), nullable=False) # local path or URL
+    selected_options = Column(JSON)
+    generated_image_url = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    prompt_used = Column(Text)
+    model_used = Column(String(100))
+    is_favorite = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="generated_designs")
     requests = relationship("DesignRequest", back_populates="generated_design")
+
 
 class DesignRequest(Base):
     __tablename__ = "design_requests"
@@ -180,10 +230,12 @@ class DesignRequest(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     jeweler_id = Column(Integer, ForeignKey("jewelers.id"), nullable=False)
-    generated_design_id = Column(Integer, ForeignKey("user_generated_designs.id"), nullable=True) # can be null if uploaded custom image
+    generated_design_id = Column(
+        Integer, ForeignKey("user_generated_designs.id"), nullable=True
+    )  # can be null if uploaded custom image
     request_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     description = Column(Text)
-    attachment_url = Column(String(255)) # uploaded image path if not AI generated
+    attachment_url = Column(String(255))  # uploaded image path if not AI generated
     estimated_budget = Column(Float)
     jeweler_price_offer = Column(Float)
     status = Column(Enum(DesignRequestStatus), default=DesignRequestStatus.PENDING)

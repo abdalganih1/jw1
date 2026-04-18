@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -31,11 +32,13 @@ export default function RootLayout({
     <html lang="ar" dir="rtl">
       <body className={`${playfair.variable} ${inter.variable} antialiased bg-[#faf9f7]`}>
         <LanguageProvider>
-          <Navbar />
-          <main className="pt-[120px]">
-            {children}
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Navbar />
+            <main className="pt-[120px]">
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

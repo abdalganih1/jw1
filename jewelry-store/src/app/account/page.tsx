@@ -1,14 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
+import { useAuth } from '@/contexts/AuthContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
 const tabs = [
   { id: 'orders', label: 'طلباتي' },
+  { id: 'designs', label: '✨ تصميماتي' },
   { id: 'addresses', label: 'العناوين' },
   { id: 'favorites', label: 'المفضلة' },
   { id: 'profile', label: 'الملف الشخصي' },
@@ -40,6 +44,39 @@ function AccountContent() {
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || 'orders');
   const [favorites] = useState(['1', '3', '9']);
+  const { token, isAuthenticated } = useAuth();
+  const [designs, setDesigns] = useState<Array<{
+    id: number;
+    selected_options: Record<string, unknown>;
+    generated_image_url: string;
+    created_at: string;
+    is_favorite: boolean;
+  }>>([]);
+  const [designsLoading, setDesignsLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'designs' && isAuthenticated && token) {
+      setDesignsLoading(true);
+      fetch(`${API_URL}/ai/my-designs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.ok ? res.json() : { designs: [] })
+        .then(data => setDesigns(data.designs || []))
+        .catch(() => setDesigns([]))
+        .finally(() => setDesignsLoading(false));
+    }
+  }, [activeTab, isAuthenticated, token]);
+
+  const handleDeleteDesign = async (id: number) => {
+    if (!token) return;
+    try {
+      await fetch(`${API_URL}/ai/designs/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDesigns(prev => prev.filter(d => d.id !== id));
+    } catch {}
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ar-SA', {
@@ -149,6 +186,51 @@ function AccountContent() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'designs' && (
+              <div className="bg-white rounded-lg p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold">تصميماتي</h2>
+                  <Link href="/builder" className="text-sm text-[#c9a962] hover:underline font-medium">+ تصميم جديد</Link>
+                </div>
+
+                {designsLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : designs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                    </svg>
+                    <p className="text-gray-500 mb-4">لا توجد تصميمات بعد</p>
+                    <Link href="/builder" className="text-[#c9a962] font-medium hover:underline">ابدأ بتصميم قطعتك الأولى</Link>
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {designs.map((design) => {
+                      const imgFull = design.generated_image_url.startsWith('http')
+                        ? design.generated_image_url
+                        : `${API_URL.replace('/api', '')}${design.generated_image_url}`;
+                      return (
+                        <div key={design.id} className="border rounded-xl overflow-hidden group hover:shadow-lg transition-shadow">
+                          <div className="relative aspect-square">
+                            <Image src={imgFull} alt="Design" fill className="object-cover" sizes="(max-width: 640px) 100vw, 33vw" unoptimized />
+                          </div>
+                          <div className="p-3">
+                            <p className="text-xs text-gray-400 mb-2">{new Date(design.created_at).toLocaleDateString('ar-SA')}</p>
+                            <div className="flex gap-2">
+                              <Link href="/builder" className="text-xs text-[#c9a962] hover:underline">إعادة تصميم</Link>
+                              <button onClick={() => handleDeleteDesign(design.id)} className="text-xs text-red-500 hover:underline">حذف</button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -312,6 +394,8 @@ function AccountContent() {
 
 export default function AccountPage() {
   return (
-    <AccountContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" /></div>}>
+      <AccountContent />
+    </Suspense>
   );
 }
