@@ -11,6 +11,7 @@ function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   const sortParam = searchParams.get('sort');
+  const searchParam = searchParams.get('search');
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
   const [selectedMetals, setSelectedMetals] = useState<string[]>([]);
@@ -72,6 +73,16 @@ function ShopContent() {
     }
 
     result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+
+    if (searchParam) {
+      const query = searchParam.toLowerCase();
+      result = result.filter(p =>
+        p.name?.toLowerCase().includes(query) ||
+        p.nameAr?.includes(query) ||
+        p.description?.toLowerCase().includes(query) ||
+        p.descriptionAr?.includes(query)
+      );
+    }
 
     switch (sortBy) {
       case 'price-asc':

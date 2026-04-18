@@ -18,34 +18,13 @@ const tabs = [
   { id: 'profile', label: 'الملف الشخصي' },
 ];
 
-const mockOrders = [
-  {
-    id: 'ORD-001',
-    date: '2024-01-15',
-    status: 'delivered',
-    total: 4500,
-    items: [
-      { name: 'خاتم الماس الأبدي', quantity: 1, image: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=100' },
-    ],
-  },
-  {
-    id: 'ORD-002',
-    date: '2024-01-20',
-    status: 'shipped',
-    total: 3200,
-    items: [
-      { name: 'قلادة اللؤلؤ المتدلي', quantity: 1, image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=100' },
-    ],
-  },
-];
-
 function AccountContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || 'orders');
   const [favorites] = useState(['1', '3', '9']);
-  const { user, token, isAuthenticated, logout } = useAuth();
+  const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const [designs, setDesigns] = useState<Array<{
     id: number;
     selected_options: Record<string, unknown>;
@@ -54,6 +33,35 @@ function AccountContent() {
     is_favorite: boolean;
   }>>([]);
   const [designsLoading, setDesignsLoading] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [addresses, setAddresses] = useState<Array<{ id: string; label: string; name: string; street: string; city: string; country: string; phone: string; isDefault: boolean }>>([]);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressForm, setAddressForm] = useState({ label: '', name: '', street: '', city: '', country: 'السعودية', phone: '' });
+
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('addresses');
+    if (saved) setAddresses(JSON.parse(saved));
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'orders' && isAuthenticated && token) {
+      setOrdersLoading(true);
+      fetch(`${API_URL}/orders/my-orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(r => r.ok ? r.json() : [])
+        .then(data => setOrders(Array.isArray(data) ? data : []))
+        .catch(() => setOrders([]))
+        .finally(() => setOrdersLoading(false));
+    }
+  }, [activeTab, isAuthenticated, token]);
 
   useEffect(() => {
     if (activeTab === 'designs' && isAuthenticated && token) {
@@ -67,6 +75,26 @@ function AccountContent() {
         .finally(() => setDesignsLoading(false));
     }
   }, [activeTab, isAuthenticated, token]);
+
+  const saveAddresses = (addrs: typeof addresses) => {
+    setAddresses(addrs);
+    localStorage.setItem('addresses', JSON.stringify(addrs));
+  };
+
+  const handleAddAddress = () => {
+    if (!addressForm.name || !addressForm.street || !addressForm.city) return;
+    const newAddr = { ...addressForm, id: Date.now().toString(), isDefault: addresses.length === 0 };
+    saveAddresses([...addresses, newAddr]);
+    setAddressForm({ label: '', name: '', street: '', city: '', country: 'السعودية', phone: '' });
+    setShowAddressForm(false);
+  };
+
+  const handleDeleteAddress = (id: string) => {
+    saveAddresses(addresses.filter(a => a.id !== id));
+  };
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" /></div>;
+  if (!isAuthenticated) return null;
 
   const handleDeleteDesign = async (id: number) => {
     if (!token) return;
@@ -150,43 +178,39 @@ function AccountContent() {
             {activeTab === 'orders' && (
               <div className="bg-white rounded-lg p-6">
                 <h2 className="text-lg font-semibold mb-6">طلباتي</h2>
-                
+
+                {ordersLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <p className="text-gray-500">لا توجد طلبات بعد</p>
+                  </div>
+                ) : (
                 <div className="space-y-4">
-                  {mockOrders.map((order) => (
+                  {orders.map((order: any) => (
                     <div key={order.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="text-right">
-                          <p className="font-medium">{order.id}</p>
-                          <p className="text-sm text-gray-500">{order.date}</p>
+                          <p className="font-medium">#{order.id}</p>
+                          <p className="text-sm text-gray-500">{order.created_at ? new Date(order.created_at).toLocaleDateString('ar-SA') : ''}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
+                        <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(order.status || 'processing')}`}>
+                          {getStatusText(order.status || 'processing')}
                         </span>
                       </div>
-                      
-                      <div className="flex items-center gap-3 mb-4">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-3">
-                            <div className="relative w-12 h-12 rounded overflow-hidden">
-                              <Image src={item.image} alt={item.name} fill className="object-cover" sizes="48px" />
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium">{item.name}</p>
-                              <p className="text-xs text-gray-500">الكمية: {item.quantity}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
+
                       <div className="flex items-center justify-between pt-4 border-t">
-                        <span className="font-bold text-[#c9a962]">{formatPrice(order.total)}</span>
-                        <Link href={`/account/orders/${order.id}`} className="text-sm text-[#c9a962] hover:underline">
-                          عرض التفاصيل
-                        </Link>
+                        <span className="font-bold text-[#c9a962]">{formatPrice(order.total_price || order.total || 0)}</span>
                       </div>
                     </div>
                   ))}
                 </div>
+                )}
               </div>
             )}
 
@@ -239,27 +263,47 @@ function AccountContent() {
               <div className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-lg font-semibold">العناوين</h2>
-                  <button className="text-[#c9a962] text-sm hover:underline">+ إضافة عنوان</button>
+                  <button onClick={() => setShowAddressForm(true)} className="text-[#c9a962] text-sm hover:underline">+ إضافة عنوان</button>
                 </div>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="border rounded-lg p-4 relative">
-                    <span className="absolute top-2 left-2 text-xs bg-[#c9a962] text-white px-2 py-1 rounded">الافتراضي</span>
-                    <h3 className="font-medium mb-2">المنزل</h3>
-                    <p className="text-sm text-gray-600">
-                      سارة أحمد<br />
-                      حي النخيل، شارع الأمير سلطان<br />
-                      الرياض، 12345<br />
-                      السعودية<br />
-                      0501234567
-                    </p>
-                    <div className="flex gap-2 mt-4">
-                      <button className="text-sm text-[#c9a962] hover:underline">تعديل</button>
-                      <button className="text-sm text-red-500 hover:underline">حذف</button>
+
+                {showAddressForm && (
+                  <div className="border rounded-lg p-4 mb-4 space-y-3">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <input placeholder="تسمية العنوان (مثال: المنزل)" value={addressForm.label} onChange={e => setAddressForm({...addressForm, label: e.target.value})} className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" />
+                      <input placeholder="الاسم الكامل" value={addressForm.name} onChange={e => setAddressForm({...addressForm, name: e.target.value})} className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" />
+                    </div>
+                    <input placeholder="الشارع" value={addressForm.street} onChange={e => setAddressForm({...addressForm, street: e.target.value})} className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      <input placeholder="المدينة" value={addressForm.city} onChange={e => setAddressForm({...addressForm, city: e.target.value})} className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" />
+                      <input placeholder="رقم الهاتف" value={addressForm.phone} onChange={e => setAddressForm({...addressForm, phone: e.target.value})} className="px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" dir="ltr" />
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={handleAddAddress} className="px-4 py-2 bg-[#c9a962] text-white rounded-lg text-sm hover:bg-[#b8944f]">حفظ</button>
+                      <button onClick={() => setShowAddressForm(false)} className="px-4 py-2 border rounded-lg text-sm text-gray-500 hover:bg-gray-50">إلغاء</button>
                     </div>
                   </div>
+                )}
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  {addresses.map((addr) => (
+                    <div key={addr.id} className="border rounded-lg p-4 relative">
+                      {addr.isDefault && <span className="absolute top-2 left-2 text-xs bg-[#c9a962] text-white px-2 py-1 rounded">الافتراضي</span>}
+                      <h3 className="font-medium mb-2">{addr.label || 'عنوان'}</h3>
+                      <p className="text-sm text-gray-600">
+                        {addr.name}<br />
+                        {addr.street}<br />
+                        {addr.city}<br />
+                        {addr.country}
+                        {addr.phone && <><br />{addr.phone}</>}
+                      </p>
+                      <div className="flex gap-2 mt-4">
+                        <button className="text-sm text-[#c9a962] hover:underline">تعديل</button>
+                        <button onClick={() => handleDeleteAddress(addr.id)} className="text-sm text-red-500 hover:underline">حذف</button>
+                      </div>
+                    </div>
+                  ))}
                   
-                  <div className="border rounded-lg p-4 border-dashed flex items-center justify-center min-h-[200px] cursor-pointer hover:border-[#c9a962] transition-colors">
+                  <div className="border rounded-lg p-4 border-dashed flex items-center justify-center min-h-[200px] cursor-pointer hover:border-[#c9a962] transition-colors" onClick={() => setShowAddressForm(true)}>
                     <div className="text-center">
                       <svg className="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
@@ -302,7 +346,7 @@ function AccountContent() {
                       <label className="block text-sm font-medium mb-1">الاسم الأول</label>
                       <input
                         type="text"
-                        defaultValue="سارة"
+                        defaultValue={user?.first_name || ''}
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                       />
                     </div>
@@ -310,7 +354,7 @@ function AccountContent() {
                       <label className="block text-sm font-medium mb-1">الاسم الأخير</label>
                       <input
                         type="text"
-                        defaultValue="أحمد"
+                        defaultValue={user?.last_name || ''}
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                       />
                     </div>
@@ -320,7 +364,7 @@ function AccountContent() {
                     <label className="block text-sm font-medium mb-1">البريد الإلكتروني</label>
                     <input
                       type="email"
-                      defaultValue="sara@email.com"
+                        defaultValue={user?.email || ''}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                       dir="ltr"
                     />
@@ -330,7 +374,7 @@ function AccountContent() {
                     <label className="block text-sm font-medium mb-1">رقم الهاتف</label>
                     <input
                       type="tel"
-                      defaultValue="0501234567"
+                        defaultValue={user?.phone || ''}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                       dir="ltr"
                     />

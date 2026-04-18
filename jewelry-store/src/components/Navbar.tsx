@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -254,14 +255,41 @@ const navCategories: Array<{
 // ── المكوّن الرئيسي ──────────────────────────────────────────────────
 export default function Navbar() {
   const { lang, setLang } = useLanguage();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, token } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const langRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      const cart = localStorage.getItem('cart');
+      if (cart) {
+        try {
+          const items = JSON.parse(cart);
+          setCartCount(Array.isArray(items) ? items.reduce((sum: number, i: any) => sum + (i.quantity || 1), 0) : 0);
+        } catch { setCartCount(0); }
+      }
+    };
+    updateCartCount();
+    window.addEventListener('storage', updateCartCount);
+    const interval = setInterval(updateCartCount, 2000);
+    return () => { window.removeEventListener('storage', updateCartCount); clearInterval(interval); };
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchOpen(false);
+      setSearchQuery('');
+    }
+  };
 
   // إغلاق قائمة اللغة عند الضغط خارجها
   useEffect(() => {
@@ -325,11 +353,19 @@ export default function Navbar() {
                 </Link>
               )}
 
-              <Link href="/account" className="p-2 hover:text-white transition-colors" style={{ color: '#110d15' }} aria-label="حسابي">
-                <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/account" className="p-2 hover:text-white transition-colors" style={{ color: '#110d15' }} aria-label="حسابي">
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </Link>
+              ) : (
+                <Link href="/login" className="p-2 hover:text-white transition-colors" style={{ color: '#110d15' }} aria-label="تسجيل الدخول">
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                </Link>
+              )}
 
               {isAuthenticated && user?.role === 'ADMIN' && (
                 <Link href="/admin" className="p-2 hover:text-white transition-colors" style={{ color: '#110d15' }} aria-label="لوحة التحكم">
@@ -483,7 +519,7 @@ export default function Navbar() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#110d15] text-[#c9a962] text-[9px] rounded-full flex items-center justify-center font-bold">0</span>
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#110d15] text-[#c9a962] text-[9px] rounded-full flex items-center justify-center font-bold">{cartCount}</span>
               </Link>
             </div>
 
@@ -611,6 +647,7 @@ export default function Navbar() {
         <div className="bg-white border-b border-gray-100 shadow-sm">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="relative">
+              <form onSubmit={handleSearch}>
               <input
                 type="text"
                 value={searchQuery}
@@ -620,6 +657,7 @@ export default function Navbar() {
                 dir="rtl"
                 autoFocus
               />
+              </form>
               <button
                 onClick={() => setIsSearchOpen(false)}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#c9a962] transition-colors"

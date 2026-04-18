@@ -101,7 +101,7 @@ export const translations: Record<Language, Record<string, string>> = {
         'contact.address': 'العنوان',
         'contact.hours': 'ساعات العمل',
         // Footer
-        'footer.rights': '© 2024 Vivelt gold. جميع الحقوق محفوظة.',
+        'footer.rights': `© ${new Date().getFullYear()} Vivelt gold. جميع الحقوق محفوظة.`,
         'footer.sections': 'الأقسام',
         'footer.help': 'المساعدة',
         'footer.contactUs': 'تواصل معنا',
@@ -194,7 +194,7 @@ export const translations: Record<Language, Record<string, string>> = {
         'contact.address': 'Address',
         'contact.hours': 'Working Hours',
         // Footer
-        'footer.rights': '© 2024 Vivelt gold. All rights reserved.',
+        'footer.rights': `© ${new Date().getFullYear()} Vivelt gold. All rights reserved.`,
         'footer.sections': 'Collections',
         'footer.help': 'Help',
         'footer.contactUs': 'Contact Us',

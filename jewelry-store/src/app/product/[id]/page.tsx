@@ -51,9 +51,48 @@ export default function ProductPage() {
     return total;
   };
 
-  const handleAddToCart = () => {
-    setToast({ isVisible: true, message: 'تمت الإضافة إلى السلة بنجاح!' });
-    setTimeout(() => setToast({ ...toast, isVisible: false }), 3000);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setToast({ isVisible: true, message: 'يرجى تسجيل الدخول أولاً' });
+      setTimeout(() => setToast(t => ({ ...t, isVisible: false })), 3000);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/cart/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: parseInt(productId),
+          quantity: quantity,
+        }),
+      });
+
+      if (res.ok) {
+        const cart = localStorage.getItem('cart');
+        const items = cart ? JSON.parse(cart) : [];
+        const existing = items.find((i: any) => String(i.product_id) === String(productId));
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          items.push({ product_id: parseInt(productId), quantity });
+        }
+        localStorage.setItem('cart', JSON.stringify(items));
+        window.dispatchEvent(new Event('storage'));
+        setToast({ isVisible: true, message: 'تمت الإضافة إلى السلة بنجاح!' });
+      } else {
+        setToast({ isVisible: true, message: 'حدث خطأ أثناء الإضافة' });
+      }
+    } catch {
+      setToast({ isVisible: true, message: 'تعذر الاتصال بالخادم' });
+    }
+    setTimeout(() => setToast(t => ({ ...t, isVisible: false })), 3000);
   };
 
   const relatedProducts = products
