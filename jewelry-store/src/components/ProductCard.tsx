@@ -17,9 +17,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const t = (ar: string, en: string) => lang === 'en' ? en : ar;
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'en' ? 'en-SA' : 'ar-SA', {
+    return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'ar-US', {
       style: 'currency',
-      currency: 'SAR',
+      currency: 'USD',
       minimumFractionDigits: 0
     }).format(price);
   };

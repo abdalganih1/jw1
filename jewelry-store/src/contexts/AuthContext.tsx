@@ -8,6 +8,7 @@ interface User {
   email: string;
   first_name?: string;
   last_name?: string;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authError: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   fetchUser: () => Promise<void>;
@@ -28,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const fetchUser = async () => {
     const storedToken = localStorage.getItem('token');
@@ -45,12 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         setUser(data);
         setToken(storedToken);
+        setAuthError(null);
       } else {
         localStorage.removeItem('token');
         setUser(null);
         setToken(null);
       }
     } catch {
+      setAuthError('تعذر الاتصال بالخادم');
       localStorage.removeItem('token');
       setUser(null);
       setToken(null);
@@ -87,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, isLoading, login, logout, fetchUser }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!user, isLoading, authError, login, logout, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

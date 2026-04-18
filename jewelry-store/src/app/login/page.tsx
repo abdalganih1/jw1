@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+
 export default function LoginPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -19,16 +21,13 @@ export default function LoginPage() {
         setError('');
 
         try {
-            // Create x-www-form-urlencoded body for OAuth2 Password Bearer
             const urlEncodedData = new URLSearchParams();
             urlEncodedData.append('username', formData.username);
             urlEncodedData.append('password', formData.password);
 
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/login`, {
+            const res = await fetch(`${API_URL}/login`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: urlEncodedData.toString()
             });
 
@@ -38,11 +37,24 @@ export default function LoginPage() {
 
             const data = await res.json();
             localStorage.setItem('token', data.access_token);
-            router.push('/');
+
+            const meRes = await fetch(`${API_URL}/auth/me`, {
+                headers: { Authorization: `Bearer ${data.access_token}` },
+            });
+            if (meRes.ok) {
+                const meData = await meRes.json();
+                if (meData.role === 'ADMIN') {
+                    router.push('/admin');
+                } else {
+                    router.push('/account');
+                }
+            } else {
+                router.push('/');
+            }
             router.refresh();
 
-        } catch (err: any) {
-            setError(err.message || 'حدث خطأ، حاول مرة أخرى');
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى');
         } finally {
             setLoading(false);
         }

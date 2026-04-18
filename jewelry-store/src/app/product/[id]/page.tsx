@@ -37,9 +37,9 @@ export default function ProductPage() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ar-SA', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'SAR',
+      currency: 'USD',
       minimumFractionDigits: 0
     }).format(price);
   };
@@ -138,7 +138,7 @@ export default function ProductPage() {
             <div className="space-y-6 mb-8">
               {product.sizes && (
                 <div>
-                  <label className="block text-sm font-medium mb-2">المقاس</label>
+                  <label className="block text-sm font-medium mb-2 text-gray-700">المقاس</label>
                   <div className="flex flex-wrap gap-2">
                     {product.sizes.map((size) => (
                       <button
@@ -146,7 +146,7 @@ export default function ProductPage() {
                         onClick={() => setSelectedSize(size)}
                         className={`px-4 py-2 border rounded-lg transition-colors ${selectedSize === size
                             ? 'border-[#c9a962] bg-[#c9a962]/10 text-[#c9a962]'
-                            : 'border-gray-200 hover:border-[#c9a962]'
+                            : 'border-gray-200 hover:border-[#c9a962] text-gray-700'
                           }`}
                       >
                         {size}
@@ -157,7 +157,7 @@ export default function ProductPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium mb-2">المعدن</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">المعدن</label>
                 <div className="flex flex-wrap gap-2">
                   {metals.map((metal) => (
                     <button
@@ -165,7 +165,7 @@ export default function ProductPage() {
                       onClick={() => setSelectedMetal(metal.id)}
                       className={`px-4 py-2 border rounded-lg transition-colors ${selectedMetal === metal.id
                           ? 'border-[#c9a962] bg-[#c9a962]/10 text-[#c9a962]'
-                          : 'border-gray-200 hover:border-[#c9a962]'
+                          : 'border-gray-200 hover:border-[#c9a962] text-gray-700'
                         }`}
                     >
                       {metal.nameAr}
@@ -175,7 +175,7 @@ export default function ProductPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">الكمية</label>
+                <label className="block text-sm font-medium mb-2 text-gray-700">الكمية</label>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -201,7 +201,7 @@ export default function ProductPage() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
-                  {engraving ? `النقش: "${engraving}"` : 'إضافة نقش (+150 ر.س)'}
+                  {engraving ? `النقش: "${engraving}"` : 'إضافة نقش (+$150)'}
                 </button>
 
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -211,7 +211,7 @@ export default function ProductPage() {
                     onChange={(e) => setGiftWrap(e.target.checked)}
                     className="w-4 h-4 text-[#c9a962] border-gray-300 rounded focus:ring-[#c9a962]"
                   />
-                  <span className="text-sm text-gray-600">تغليف هدية (+50 ر.س)</span>
+                  <span className="text-sm text-gray-600">تغليف هدية (+$50)</span>
                 </label>
               </div>
             </div>
@@ -246,7 +246,7 @@ export default function ProductPage() {
                 <svg className="w-5 h-5 text-[#c9a962]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="text-sm text-gray-600">شحن مجاني للطلبات فوق 1000 ر.س</span>
+                <span className="text-sm text-gray-600">شحن مجاني للطلبات فوق $1,000</span>
               </div>
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5 text-[#c9a962]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

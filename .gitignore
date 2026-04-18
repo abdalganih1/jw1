@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+!.env.example
 
 # Python
 __pycache__/
@@ -27,6 +28,10 @@ out/
 # OS
 Thumbs.db
 .DS_Store
+
+# Secrets
+*.pem
+*.key
 
 # Static generated
 jewelry-backend/static/generated_designs/

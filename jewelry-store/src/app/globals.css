@@ -24,13 +24,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f0f;
-    --foreground: #faf9f7;
-  }
-}
-
 * {
   box-sizing: border-box;
 }

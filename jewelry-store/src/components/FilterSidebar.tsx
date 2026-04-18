@@ -162,8 +162,8 @@ export default function FilterSidebar({
             style={{ accentColor: '#c9a962' }}
           />
           <div className="flex justify-between text-xs text-[#c9a962]/70">
-            <span>{priceRange[0].toLocaleString('ar-SA')} ر.س</span>
-            <span>{priceRange[1].toLocaleString('ar-SA')} ر.س</span>
+            <span>{priceRange[0].toLocaleString('en-US')} $</span>
+            <span>{priceRange[1].toLocaleString('en-US')} $</span>
           </div>
         </div>
       </div>

@@ -109,7 +109,7 @@ export function EngravingModal({
         </div>
 
         <p className="text-xs text-gray-400 text-center">
-          تكلفة النقش: 150 ر.س
+          تكلفة النقش: $150
         </p>
       </div>
     </Modal>

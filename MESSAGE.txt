@@ -1,0 +1,207 @@
+أخبار ممتازة! بما أن الـ Backend (FastAPI) وقاعدة البيانات (MySQL على XAMPP) أصبحا جاهزين، الخطوة الأهم الآن هي **ربط الواجهة الأمامية (HTML/CSS/JS) مع الواجهة الخلفية** ليعمل المشروع ككتلة واحدة متكاملة.
+
+إليك دليلاً عملياً وأكواد جاهزة للنسخ لتنفيذ هذا التكامل (Integration) بسلاسة:
+
+### الخطوة 1: التأكد من إعدادات الـ Backend (CORS و Static Files)
+في ملف `main.py` الخاص بالـ FastAPI، تأكد أنك تسمح للواجهة الأمامية بالاتصال به (CORS)، وتسمح بعرض الصور التي سيولدها الذكاء الاصطناعي:
+
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+app = FastAPI()
+
+# 1. السماح للواجهة الأمامية بالاتصال (CORS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # يسمح لأي ملف HTML بالاتصال
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 2. تفعيل مجلد الصور ليتمكن الـ HTML من قراءة الصور المُولّدة
+# تأكد من إنشاء مجلد اسمه 'static' وبداخله 'generated_designs'
+app.mount("/static", StaticFiles(directory="static"), name="static")
+```
+
+---
+
+### الخطوة 2: إنشاء ملف الإعدادات في الواجهة الأمامية (`api.js`)
+في مجلد مشروع الـ HTML، قم بإنشاء ملف جافاسكريبت باسم `api.js` وقم بربطه في كل صفحات الـ HTML `<script src="api.js"></script>`. هذا الملف سيسهل عليك الاتصال بالخادم:
+
+```javascript
+// عنوان السيرفر الخاص بـ FastAPI
+const BASE_URL = "http://localhost:8000";
+
+// دالة لجلب التوكن (Token) الخاص بالمستخدم المسجل
+function getAuthToken() {
+    return localStorage.getItem("access_token");
+}
+
+// دالة للتحقق مما إذا كان المستخدم مسجل الدخول
+function isLoggedIn() {
+    return !!getAuthToken();
+}
+
+// دالة تسجيل الخروج
+function logout() {
+    localStorage.removeItem("access_token");
+    window.location.href = "login.html";
+}
+```
+
+---
+
+### الخطوة 3: ربط شاشة "توليد تصميم بالذكاء الاصطناعي" (أهم ميزة)
+لنفترض أن لديك ملف `ai-design.html` يحتوي على نموذج (Form) لاختيار مواصفات المجوهرات.
+
+**كود الـ HTML (مثال مبسط داخل `ai-design.html`):**
+```html
+<form id="ai-design-form">
+    <select id="type">
+        <option value="Ring">خاتم</option>
+        <option value="Necklace">قلادة</option>
+        <option value="Bracelet">سوار</option>
+    </select>
+    
+    <select id="material">
+        <option value="Gold">ذهب</option>
+        <option value="Silver">فضة</option>
+    </select>
+    
+    <select id="karat">
+        <option value="18k">عيار 18</option>
+        <option value="21k">عيار 21</option>
+    </select>
+    
+    <select id="gemstone_type">
+        <option value="Diamond">ألماس</option>
+        <option value="Ruby">ياقوت</option>
+        <option value="None">بدون فصوص</option>
+    </select>
+    
+    <button type="submit">توليد التصميم السحري ✨</button>
+</form>
+
+<!-- مكان عرض النتيجة -->
+<div id="loading" style="display: none;">جاري توليد التصميم... يرجى الانتظار</div>
+<img id="result-image" src="" alt="تصميمك سيظهر هنا" style="max-width: 400px; display: none;">
+```
+
+**كود الجافاسكريبت للاتصال بـ FastAPI وإرسال الطلب لـ Gemini:**
+```javascript
+document.getElementById('ai-design-form').addEventListener('submit', async function(e) {
+    e.preventDefault(); // منع تحديث الصفحة
+    
+    // التحقق من تسجيل الدخول
+    if(!isLoggedIn()) {
+        alert("يرجى تسجيل الدخول أولاً لتوليد التصاميم!");
+        window.location.href = "login.html";
+        return;
+    }
+
+    // إظهار رسالة التحميل
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('result-image').style.display = 'none';
+
+    // جمع البيانات من الفورم
+    const designData = {
+        type: document.getElementById('type').value,
+        material: document.getElementById('material').value,
+        karat: document.getElementById('karat').value,
+        gemstone_type: document.getElementById('gemstone_type').value,
+        // أضف بقية الحقول (اللون، الشكل، إلخ...)
+    };
+
+    try {
+        // إرسال البيانات للـ Backend (والذي بدوره سيكلم Gemini)
+        const response = await fetch(`${BASE_URL}/api/ai/generate-design`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}` // إرسال التوكن ليعرف السيرفر من هو المستخدم
+            },
+            body: JSON.stringify(designData)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // عرض الصورة المولدة
+            document.getElementById('result-image').src = BASE_URL + "/" + data.generated_image_url;
+            document.getElementById('result-image').style.display = 'block';
+            
+            // يمكنك هنا حفظ data.design_id لإنشاء "طلب تصميم خاص للصائغ" لاحقاً
+            alert("تم توليد التصميم بنجاح!");
+        } else {
+            alert("حدث خطأ: " + data.detail);
+        }
+    } catch (error) {
+        console.error("Error generating design:", error);
+        alert("فشل الاتصال بالخادم.");
+    } finally {
+        // إخفاء رسالة التحميل
+        document.getElementById('loading').style.display = 'none';
+    }
+});
+```
+
+---
+
+### الخطوة 4: ربط عرض المنتجات في الصفحة الرئيسية (`index.html`)
+
+لجلب المنتجات من قاعدة بيانات MySQL وعرضها في الصفحة الرئيسية:
+
+```javascript
+async function loadProducts() {
+    try {
+        const response = await fetch(`${BASE_URL}/api/products`); // مسار جلب المنتجات من FastAPI
+        const products = await response.json();
+        
+        const productsContainer = document.getElementById('products-container'); // الديف الذي يحوي المنتجات في HTML
+        productsContainer.innerHTML = ''; // تنظيف الحاوية
+
+        products.forEach(product => {
+            // إنشاء كارد لكل منتج
+            const productCard = `
+                <div class="product-card">
+                    <img src="${BASE_URL}/${product.image_path}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p>المادة: ${product.material} | العيار: ${product.karat}</p>
+                    <p class="price">${product.price} ريال</p>
+                    <button onclick="addToCart(${product.id})">أضف للسلة</button>
+                </div>
+            `;
+            productsContainer.innerHTML += productCard;
+        });
+    } catch (error) {
+        console.error("Error loading products:", error);
+    }
+}
+
+// استدعاء الدالة عند تحميل الصفحة
+window.onload = loadProducts;
+```
+
+---
+
+### الخطوة 5: كيف تقوم بتشغيل المشروع بالكامل الآن؟
+
+لكي يعمل كل شيء معاً، يجب أن تتبع هذا الترتيب:
+
+1. **قاعدة البيانات (XAMPP):**
+   - افتح برنامج XAMPP.
+   - اضغط على زر **Start** بجانب **Apache** و **MySQL**.
+2. **الـ Backend (FastAPI):**
+   - افتح الـ Terminal (موجه الأوامر) داخل مجلد الباك إند.
+   - قم بتشغيل البيئة الوهمية (إن وجدت).
+   - تأكد من تشغيل ملف البذر (Seeder) أولاً لوضع بيانات تجريبية: `python seeder.py`
+   - شغل السيرفر بالأمر: `uvicorn main:app --reload` (سيخبرك أنه يعمل على `http://127.0.0.1:8000`).
+3. **الـ Frontend (HTML/JS):**
+   - لا تفتح ملفات الـ HTML بالنقر المزدوج (لأن بروتوكول `file://` قد يسبب مشاكل مع الـ CORS والـ API).
+   - الأفضل: استخدم إضافة **Live Server** في برنامج VS Code، كليك يمين على ملف `index.html` واختر `Open with Live Server`.
+   - سيفتح موقعك على المتصفح (مثلاً `http://127.0.0.1:5500`).
+
+الآن بمجرد دخولك لموقعك، سيقوم الـ JS بإرسال طلب (Fetch) إلى FastAPI، الذي سيتصل بـ MySQL، ويجلب البيانات، ثم يعرضها في تصميمك الجميل. وعند الذهاب لصفحة الذكاء الاصطناعي، سيتخاطب FastAPI مع Gemini ويجلب لك الصورة!

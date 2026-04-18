@@ -7,42 +7,16 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 // ── بيانات الأقسام مع Mega Menu وصور ──────────────────────────────────
-const navCategories = [
-  {
-    id: 'featured',
-    label: 'مجموعة رمضان',
-    href: '/shop?collection=ramadan',
-    highlight: true,
-    megaMenu: {
-      columns: [
-        {
-          title: 'تسوّقي حسب النوع',
-          links: [
-            { label: 'خواتم', href: '/shop?category=rings&collection=ramadan' },
-            { label: 'أساور', href: '/shop?category=bracelets&collection=ramadan' },
-            { label: 'أقراط', href: '/shop?category=earrings&collection=ramadan' },
-            { label: 'قلادات', href: '/shop?category=necklaces&collection=ramadan' },
-          ],
-        },
-        {
-          title: 'فئات مميزة',
-          links: [
-            { label: 'الأكثر مبيعاً', href: '/shop?sort=popular' },
-            { label: 'وصل حديثاً', href: '/shop?sort=new' },
-            { label: 'عروض خاصة', href: '/shop?sale=true' },
-            { label: 'هدايا رمضان', href: '/shop?occasion=ramadan' },
-          ],
-        },
-      ],
-      promoImage: {
-        src: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=500&fit=crop',
-        alt: 'مجموعة رمضان',
-        label: 'مجموعة رمضان',
-        sublabel: 'اكتشفي الجمال',
-        href: '/shop?collection=ramadan',
-      },
-    },
-  },
+const navCategories: Array<{
+  id: string;
+  label: string;
+  href: string;
+  highlight?: boolean;
+  megaMenu: {
+    columns: { title: string; links: { label: string; href: string }[] }[];
+    promoImage?: { src: string; alt: string; label: string; sublabel: string; href: string };
+  } | null;
+}> = [
   {
     id: 'diamonds',
     label: 'ألماس',
@@ -79,10 +53,10 @@ const navCategories = [
         {
           title: 'تسوّقي حسب السعر',
           links: [
-            { label: 'أقل من 1,000 ريال', href: '/shop?material=diamond&maxPrice=1000' },
-            { label: '1,000 - 5,000 ريال', href: '/shop?material=diamond&minPrice=1000&maxPrice=5000' },
-            { label: '5,000 - 15,000 ريال', href: '/shop?material=diamond&minPrice=5000&maxPrice=15000' },
-            { label: 'أكثر من 15,000 ريال', href: '/shop?material=diamond&minPrice=15000' },
+            { label: 'أقل من $1,000', href: '/shop?material=diamond&maxPrice=1000' },
+            { label: '$1,000 - $5,000', href: '/shop?material=diamond&minPrice=1000&maxPrice=5000' },
+            { label: '$5,000 - $15,000', href: '/shop?material=diamond&minPrice=5000&maxPrice=15000' },
+            { label: 'أكثر من $15,000', href: '/shop?material=diamond&minPrice=15000' },
           ],
         },
       ],
@@ -130,9 +104,9 @@ const navCategories = [
         {
           title: 'تسوّقي حسب السعر',
           links: [
-            { label: 'أقل من 500 ريال', href: '/shop?material=gold&maxPrice=500' },
-            { label: '500 - 2,000 ريال', href: '/shop?material=gold&minPrice=500&maxPrice=2000' },
-            { label: 'أكثر من 2,000 ريال', href: '/shop?material=gold&minPrice=2000' },
+            { label: 'أقل من $500', href: '/shop?material=gold&maxPrice=500' },
+            { label: '$500 - $2,000', href: '/shop?material=gold&minPrice=500&maxPrice=2000' },
+            { label: 'أكثر من $2,000', href: '/shop?material=gold&minPrice=2000' },
           ],
         },
       ],
@@ -242,9 +216,9 @@ const navCategories = [
         {
           title: 'تسوّقي حسب الميزانية',
           links: [
-            { label: 'أقل من 300 ريال', href: '/shop?occasion=gifts&maxPrice=300' },
-            { label: '300 - 1,000 ريال', href: '/shop?occasion=gifts&minPrice=300&maxPrice=1000' },
-            { label: 'أكثر من 1,000 ريال', href: '/shop?occasion=gifts&minPrice=1000' },
+            { label: 'أقل من $300', href: '/shop?occasion=gifts&maxPrice=300' },
+            { label: '$300 - $1,000', href: '/shop?occasion=gifts&minPrice=300&maxPrice=1000' },
+            { label: 'أكثر من $1,000', href: '/shop?occasion=gifts&minPrice=1000' },
           ],
         },
       ],
@@ -280,7 +254,7 @@ const navCategories = [
 // ── المكوّن الرئيسي ──────────────────────────────────────────────────
 export default function Navbar() {
   const { lang, setLang } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
@@ -356,6 +330,15 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </Link>
+
+              {isAuthenticated && user?.role === 'ADMIN' && (
+                <Link href="/admin" className="p-2 hover:text-white transition-colors" style={{ color: '#110d15' }} aria-label="لوحة التحكم">
+                  <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </Link>
+              )}
 
               <span style={{ color: 'rgba(17,13,21,0.3)' }}>|</span>
 
