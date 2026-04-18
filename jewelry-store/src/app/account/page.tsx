@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products } from '@/data/products';
@@ -40,11 +40,12 @@ const mockOrders = [
 ];
 
 function AccountContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || 'orders');
   const [favorites] = useState(['1', '3', '9']);
-  const { token, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated, logout } = useAuth();
   const [designs, setDesigns] = useState<Array<{
     id: number;
     selected_options: Record<string, unknown>;
@@ -116,11 +117,11 @@ function AccountContent() {
             <div className="bg-white rounded-lg p-4">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b">
                 <div className="w-12 h-12 bg-[#c9a962] rounded-full flex items-center justify-center text-white font-bold">
-                  س
+                  {user?.first_name?.[0] || user?.username?.[0] || 'U'}
                 </div>
                 <div>
-                  <p className="font-semibold">سارة أحمد</p>
-                  <p className="text-sm text-gray-500">sara@email.com</p>
+                  <p className="font-semibold">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
+                  <p className="text-sm text-gray-500">{user?.email}</p>
                 </div>
               </div>
               
@@ -138,7 +139,7 @@ function AccountContent() {
                     {tab.label}
                   </button>
                 ))}
-                <button className="w-full text-right px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
+                <button onClick={() => { logout(); router.push('/'); }} className="w-full text-right px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
                   تسجيل الخروج
                 </button>
               </nav>

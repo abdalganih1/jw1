@@ -18,7 +18,9 @@ def seed_database():
         admin_user = User(
             username="admin",
             email="admin@viveltgold.com",
-            password=get_password_hash("Admin@VG2026"),
+            password=get_password_hash(
+                os.getenv("ADMIN_DEFAULT_PASSWORD", "Admin@VG2026")
+            ),
             first_name="المدير",
             last_name="العام",
             phone="0500000001",

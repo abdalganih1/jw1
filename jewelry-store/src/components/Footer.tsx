@@ -102,7 +102,7 @@ export default function Footer() {
           <div className="mt-12 pt-8 border-t border-white/10">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-gray-400 text-sm">
-                {t('© 2024 Vivelt Gold. جميع الحقوق محفوظة.', '© 2024 Vivelt Gold. All rights reserved.')}
+                {t(`© ${new Date().getFullYear()} Vivelt Gold. جميع الحقوق محفوظة.`, `© ${new Date().getFullYear()} Vivelt Gold. All rights reserved.`)}
               </p>
               <div className="flex items-center gap-4 text-gray-400 text-sm">
                 <span>{t('نقبل الدفع بـ:', 'We accept:')}</span>

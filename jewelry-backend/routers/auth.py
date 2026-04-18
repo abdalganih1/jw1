@@ -4,16 +4,15 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User, UserRole
 from schemas import UserCreate, UserResponse, Token
-from core.security import verify_password, get_password_hash, create_access_token
+from core.security import (
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    SECRET_KEY,
+    ALGORITHM,
+)
 import jwt
 import os
-
-router = APIRouter(prefix="/auth", tags=["auth"])
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
-SECRET_KEY = os.getenv("SECRET_KEY", "your_fallback_secret_key")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 
 def get_current_user(

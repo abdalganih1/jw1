@@ -20,7 +20,6 @@ const LanguageContext = createContext<LanguageContextType>({
 export const translations: Record<Language, Record<string, string>> = {
     ar: {
         // Navbar
-        'nav.ramadan': 'مجموعة رمضان',
         'nav.diamonds': 'ألماس',
         'nav.gold': 'ذهب',
         'nav.modern': 'مجوهرات عصرية',
@@ -114,7 +113,6 @@ export const translations: Record<Language, Record<string, string>> = {
 
     en: {
         // Navbar
-        'nav.ramadan': 'Ramadan Collection',
         'nav.diamonds': 'Diamonds',
         'nav.gold': 'Gold',
         'nav.modern': 'Modern Jewelry',
