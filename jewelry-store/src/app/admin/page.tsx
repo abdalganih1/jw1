@@ -115,6 +115,7 @@ export default function AdminPage() {
   const [showJewelerForm, setShowJewelerForm] = useState(false);
   const [jewelerForm, setJewelerForm] = useState({ name: '', shop_name: '', email: '', phone: '', bio: '', address: '' });
   const [uploadingImage, setUploadingImage] = useState<number | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
@@ -171,8 +172,21 @@ export default function AdminPage() {
     try {
       const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
       if (res.ok) {
-        showSuccess(editingProduct ? 'تم تعديل المنتج ✅' : 'تم إضافة المنتج ✅');
-        setShowProductForm(false); setEditingProduct(null); setProductForm(emptyProduct);
+        const savedProduct = await res.json();
+        
+        // Upload any selected files
+        if (selectedFiles.length > 0) {
+          const productId = editingProduct ? editingProduct.id : savedProduct.id;
+          for (const file of selectedFiles) {
+            await handleImageUpload(productId, file, false);
+          }
+        }
+        
+        showSuccess(editingProduct ? 'تم تعديل المنتج بنجاح ✅' : 'تم إضافة المنتج بنجاح ✅');
+        setShowProductForm(false); 
+        setEditingProduct(null); 
+        setProductForm(emptyProduct);
+        setSelectedFiles([]);
         fetchData('products');
       } else {
         const e = await res.json(); alert(e.detail || 'خطأ');
@@ -196,7 +210,23 @@ export default function AdminPage() {
       image_path: p.image_path || '', jeweler_id: p.jeweler_id, category_ids: p.categories.map(c => c.id),
       color: p.color || 'Yellow', is_new: p.is_new ?? true, is_bestseller: p.is_bestseller || false, is_featured: p.is_featured || false,
     });
+    setSelectedFiles([]);
     setShowProductForm(true);
+  };
+
+  const handleImageUpload = async (productId: number, file: File, fetchAfter = true) => {
+    setUploadingImage(productId);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      await fetch(`${API_URL}/products/${productId}/upload-image`, {
+        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
+      });
+      if (fetchAfter) {
+        showSuccess('تم رفع الصورة ✅');
+        fetchData('products');
+      }
+    } catch {} finally { setUploadingImage(null); }
   };
 
   const handleDeleteImage = async (imageId: number) => {
@@ -210,19 +240,6 @@ export default function AdminPage() {
         fetchData('products');
       }
     } catch {}
-  };
-
-  const handleImageUpload = async (productId: number, file: File) => {
-    setUploadingImage(productId);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      await fetch(`${API_URL}/products/${productId}/upload-image`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
-      });
-      showSuccess('تم رفع الصورة ✅');
-      fetchData('products');
-    } catch {} finally { setUploadingImage(null); }
   };
 
   /* ── Jeweler CRUD ── */
@@ -493,6 +510,45 @@ export default function AdminPage() {
                           <input value={productForm.image_path} onChange={(e) => setProductForm({ ...productForm, image_path: e.target.value })}
                             className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" dir="ltr" placeholder="https://..." />
                         </div>
+
+                        {/* Multiple Image Upload UI */}
+                        <div>
+                          <label className="block text-sm font-medium mb-1">صور إضافية (اختيار ملفات من الجهاز)</label>
+                          <input 
+                            type="file" 
+                            multiple 
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files) {
+                                setSelectedFiles(Array.from(e.target.files));
+                              }
+                            }}
+                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" 
+                          />
+                          {selectedFiles.length > 0 && (
+                            <p className="text-xs text-gray-500 mt-1">تم اختيار {selectedFiles.length} صور (سيتم رفعها عند الحفظ)</p>
+                          )}
+                          
+                          {/* Show existing images when editing */}
+                          {editingProduct && editingProduct.images && editingProduct.images.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-xs text-gray-500 mb-2">الصور الحالية (اضغط ❌ للحذف):</p>
+                              <div className="flex flex-wrap gap-2">
+                                {editingProduct.images.map((img) => (
+                                  <div key={img.id} className="relative group/img">
+                                    <img src={getImg(img.image_path)} className="w-12 h-12 rounded object-cover border" />
+                                    <button 
+                                      type="button"
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id); }}
+                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors">
+                                      ×
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         
                         <div className="flex gap-4">
                           <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -514,7 +570,7 @@ export default function AdminPage() {
                           className="flex-1 py-2.5 bg-[#c9a962] text-white rounded-lg text-sm font-medium hover:bg-[#b8944f] transition-colors disabled:opacity-40">
                           {editingProduct ? 'حفظ التعديلات' : 'إضافة المنتج'}
                         </button>
-                        <button onClick={() => { setShowProductForm(false); setEditingProduct(null); }} className="px-4 py-2.5 border rounded-lg text-sm text-gray-500 hover:bg-gray-50">إلغاء</button>
+                        <button onClick={() => { setShowProductForm(false); setEditingProduct(null); setSelectedFiles([]); }} className="px-4 py-2.5 border rounded-lg text-sm text-gray-500 hover:bg-gray-50">إلغاء</button>
                       </div>
                     </div>
                   </div>
@@ -571,26 +627,9 @@ export default function AdminPage() {
                             </div>
                           )}
                           <div className="flex gap-2 pt-2 border-t">
-                            <button onClick={() => handleEditProduct(p)} className="flex-1 text-xs text-[#c9a962] hover:underline font-medium">✏️ تعديل</button>
+                            <button onClick={() => handleEditProduct(p)} className="flex-1 text-xs text-[#c9a962] hover:underline font-medium">✏️ تعديل / إضافة صور</button>
                             <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 text-xs text-red-500 hover:underline">🗑️ حذف</button>
                           </div>
-                          
-                          {p.images.length > 0 && (
-                            <div className="mt-3 pt-3 border-t">
-                              <p className="text-xs text-gray-500 mb-2">إدارة الصور:</p>
-                              <div className="flex flex-wrap gap-2">
-                                {p.images.map((img) => (
-                                  <div key={img.id} className="relative group/img">
-                                    <img src={getImg(img.image_path)} className="w-8 h-8 rounded object-cover border" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id); }}
-                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                      ×
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))}
