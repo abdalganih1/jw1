@@ -159,6 +159,7 @@ def create_product(
         stock_quantity=product.stock_quantity,
         description=product.description,
         image_path=product.image_path,
+        color=product.color,
     )
     db.add(new_product)
 

@@ -34,6 +34,7 @@ migrations = [
     "ALTER TABLE user_generated_designs ADD COLUMN prompt_used TEXT NULL",
     "ALTER TABLE user_generated_designs ADD COLUMN model_used VARCHAR(100) NULL",
     "ALTER TABLE user_generated_designs ADD COLUMN is_favorite TINYINT(1) DEFAULT 0",
+    "ALTER TABLE products ADD COLUMN color VARCHAR(50) NULL",
 ]
 
 for sql in migrations:
