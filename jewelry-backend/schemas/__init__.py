@@ -108,7 +108,9 @@ class ProductBase(BaseModel):
     stock_quantity: Optional[int] = 0
     description: Optional[str] = None
     image_path: Optional[str] = None
-
+    is_new: Optional[bool] = True
+    is_bestseller: Optional[bool] = False
+    is_featured: Optional[bool] = False
 
 class ProductCreate(ProductBase):
     jeweler_id: int
@@ -125,6 +127,9 @@ class ProductUpdate(BaseModel):
     stock_quantity: Optional[int] = None
     description: Optional[str] = None
     image_path: Optional[str] = None
+    is_new: Optional[bool] = None
+    is_bestseller: Optional[bool] = None
+    is_featured: Optional[bool] = None
     category_ids: Optional[List[int]] = None
 
 

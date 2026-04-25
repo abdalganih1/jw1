@@ -15,6 +15,7 @@ from models import (
     UserRole,
     OrderStatus,
     DesignRequestStatus,
+    ProductImage,
 )
 from schemas import (
     ProductCreate,
@@ -160,6 +161,9 @@ def create_product(
         description=product.description,
         image_path=product.image_path,
         color=product.color,
+        is_new=product.is_new,
+        is_bestseller=product.is_bestseller,
+        is_featured=product.is_featured,
     )
     db.add(new_product)
 
@@ -247,6 +251,21 @@ def update_product(
     db.commit()
     db.refresh(product)
     return product
+
+
+@router.delete("/products/images/{image_id}")
+def delete_product_image(
+    image_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    image = db.query(ProductImage).filter(ProductImage.id == image_id).first()
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+    db.delete(image)
+    db.commit()
+    return {"message": "Image deleted"}
 
 
 @router.delete("/products/{product_id}")

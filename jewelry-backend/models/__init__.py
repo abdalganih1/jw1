@@ -115,6 +115,9 @@ class Product(Base):
     description = Column(Text)
     image_path = Column(String(255))
     color = Column(String(50))
+    is_new = Column(Boolean, default=True)
+    is_bestseller = Column(Boolean, default=False)
+    is_featured = Column(Boolean, default=False)
 
     jeweler = relationship("Jeweler", back_populates="products")
     categories = relationship(

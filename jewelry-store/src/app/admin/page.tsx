@@ -39,6 +39,10 @@ interface ProductItem {
   description: string | null;
   image_path: string | null;
   jeweler_id: number;
+  color: string | null;
+  is_new: boolean;
+  is_bestseller: boolean;
+  is_featured: boolean;
   categories: Array<{ id: number; name: string }>;
   images: Array<{ id: number; image_path: string }>;
 }
@@ -86,7 +90,7 @@ const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700', PROCESSING: 'bg-blue-100 text-blue-700', SHIPPED: 'bg-purple-100 text-purple-700', DELIVERED: 'bg-green-100 text-green-700', CANCELLED: 'bg-red-100 text-red-700',
 };
 
-const emptyProduct = { name: '', material: 'Gold', karat: '18K', weight: 0, price: 0, stock_quantity: 1, description: '', image_path: '', jeweler_id: 0, category_ids: [] as number[], color: 'Yellow' };
+const emptyProduct = { name: '', material: 'Gold', karat: '18K', weight: 0, price: 0, stock_quantity: 1, description: '', image_path: '', jeweler_id: 0, category_ids: [] as number[], color: 'Yellow', is_new: true, is_bestseller: false, is_featured: false };
 
 export default function AdminPage() {
   const { user, isAuthenticated, isLoading, token } = useAuth();
@@ -190,9 +194,22 @@ export default function AdminPage() {
       name: p.name, material: p.material || '', karat: p.karat || '', weight: p.weight || 0,
       price: p.price, stock_quantity: p.stock_quantity, description: p.description || '',
       image_path: p.image_path || '', jeweler_id: p.jeweler_id, category_ids: p.categories.map(c => c.id),
-      color: (p as any).color || 'Yellow',
+      color: p.color || 'Yellow', is_new: p.is_new ?? true, is_bestseller: p.is_bestseller || false, is_featured: p.is_featured || false,
     });
     setShowProductForm(true);
+  };
+
+  const handleDeleteImage = async (imageId: number) => {
+    if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
+    try {
+      const res = await fetch(`${API_URL}/admin/products/images/${imageId}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        showSuccess('تم حذف الصورة ✅');
+        fetchData('products');
+      }
+    } catch {}
   };
 
   const handleImageUpload = async (productId: number, file: File) => {
@@ -472,9 +489,24 @@ export default function AdminPage() {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium mb-1">رابط الصورة (اختياري)</label>
+                          <label className="block text-sm font-medium mb-1">الرابط المباشر للصورة (اختياري)</label>
                           <input value={productForm.image_path} onChange={(e) => setProductForm({ ...productForm, image_path: e.target.value })}
                             className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" dir="ltr" placeholder="https://..." />
+                        </div>
+                        
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" checked={productForm.is_new} onChange={(e) => setProductForm({...productForm, is_new: e.target.checked})} className="rounded text-[#c9a962] focus:ring-[#c9a962]" />
+                            منتج جديد
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" checked={productForm.is_bestseller} onChange={(e) => setProductForm({...productForm, is_bestseller: e.target.checked})} className="rounded text-[#c9a962] focus:ring-[#c9a962]" />
+                            الأكثر مبيعاً
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" checked={productForm.is_featured} onChange={(e) => setProductForm({...productForm, is_featured: e.target.checked})} className="rounded text-[#c9a962] focus:ring-[#c9a962]" />
+                            مميز (يظهر بالرئيسية)
+                          </label>
                         </div>
                       </div>
                       <div className="flex gap-3 mt-6">
@@ -519,6 +551,11 @@ export default function AdminPage() {
                             <h3 className="font-medium text-sm leading-tight">{p.name}</h3>
                             <span className="text-[#c9a962] font-bold text-sm whitespace-nowrap mr-2">${p.price.toLocaleString()}</span>
                           </div>
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {p.is_new && <span className="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-medium">جديد</span>}
+                            {p.is_bestseller && <span className="bg-yellow-100 text-yellow-700 text-[10px] px-2 py-0.5 rounded-full font-medium">مبيعاً</span>}
+                            {p.is_featured && <span className="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-medium">مميز</span>}
+                          </div>
                           <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
                             <span>{p.material || '—'}</span>
                             <span>•</span>
@@ -537,6 +574,23 @@ export default function AdminPage() {
                             <button onClick={() => handleEditProduct(p)} className="flex-1 text-xs text-[#c9a962] hover:underline font-medium">✏️ تعديل</button>
                             <button onClick={() => handleDeleteProduct(p.id)} className="flex-1 text-xs text-red-500 hover:underline">🗑️ حذف</button>
                           </div>
+                          
+                          {p.images.length > 0 && (
+                            <div className="mt-3 pt-3 border-t">
+                              <p className="text-xs text-gray-500 mb-2">إدارة الصور:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {p.images.map((img) => (
+                                  <div key={img.id} className="relative group/img">
+                                    <img src={getImg(img.image_path)} className="w-8 h-8 rounded object-cover border" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id); }}
+                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                      ×
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

@@ -69,10 +69,25 @@ export default function ProductCard({ product }: ProductCardProps) {
         const existing = items.find((i: any) => String(i.product_id) === String(product.id));
         if (existing) { existing.quantity += 1; } else { items.push({ product_id: parseInt(String(product.id)), quantity: 1 }); }
         localStorage.setItem('cart', JSON.stringify(items));
+        window.dispatchEvent(new CustomEvent('cart-updated'));
         window.dispatchEvent(new Event('storage'));
+        
+        const btn = e.currentTarget as HTMLButtonElement;
+        const originalText = btn.innerText;
+        btn.innerText = lang === 'en' ? '✓ Added' : '✓ تمت الإضافة';
+        btn.style.background = '#16a34a';
+        btn.style.color = '#ffffff';
+        btn.style.borderColor = '#16a34a';
+        
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.background = isHovered ? '#c9a962' : 'transparent';
+          btn.style.color = isHovered ? '#0d0a0e' : '#c9a962';
+          btn.style.borderColor = 'rgba(201,169,98,0.4)';
+        }, 2000);
       }
     } catch {}
-  }, [product.id]);
+  }, [product.id, isHovered, lang]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'ar-US', {

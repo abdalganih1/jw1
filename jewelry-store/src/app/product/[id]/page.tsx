@@ -30,6 +30,8 @@ export default function ProductPage() {
   const [isEngravingModalOpen, setIsEngravingModalOpen] = useState(false);
   const [toast, setToast] = useState({ isVisible: false, message: '' });
 
+  const [addingToCart, setAddingToCart] = useState(false);
+
   useEffect(() => {
     setIsLoading(true);
     fetch(`${API_URL}/products/${productId}`)
@@ -111,6 +113,8 @@ export default function ProductPage() {
       return;
     }
 
+    setAddingToCart(true);
+
     try {
       const res = await fetch(`${API_URL}/cart/items`, {
         method: 'POST',
@@ -134,13 +138,16 @@ export default function ProductPage() {
           items.push({ product_id: parseInt(productId), quantity });
         }
         localStorage.setItem('cart', JSON.stringify(items));
-        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('cart-updated')); // For same tab
+        window.dispatchEvent(new Event('storage')); // For other tabs
         setToast({ isVisible: true, message: t('product.addedToCart') });
       } else {
         setToast({ isVisible: true, message: t('product.addError') });
       }
     } catch {
       setToast({ isVisible: true, message: t('product.connectionError') });
+    } finally {
+      setAddingToCart(false);
     }
     setTimeout(() => setToast(t => ({ ...t, isVisible: false })), 3000);
   };
@@ -311,9 +318,17 @@ export default function ProductPage() {
             <div className="space-y-4 mb-8">
               <button
                 onClick={handleAddToCart}
-                className="w-full py-4 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors"
+                disabled={addingToCart}
+                className="w-full py-4 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors disabled:opacity-70 flex justify-center items-center gap-2"
               >
-                {`${t('product.addToCart')} - ${formatPrice(calculateTotal())}`}
+                {addingToCart ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>جاري الإضافة...</span>
+                  </>
+                ) : (
+                  `${t('product.addToCart')} - ${formatPrice(calculateTotal())}`
+                )}
               </button>
 
               <Link

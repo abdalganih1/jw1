@@ -9,6 +9,7 @@ export interface Product {
   images: string[];
   category: string;
   metal: string;
+  color?: string;
   stone?: string;
   weight: number;
   isNew?: boolean;
