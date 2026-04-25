@@ -3,7 +3,7 @@
 import { useState, useMemo, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { products as mockProducts } from '@/data/products';
-import { API_URL, mapApiProduct, ApiCategory, mapApiCategory } from '@/lib/api';
+import { API_URL, mapApiProduct, mapApiCategory } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import FilterSidebar from '@/components/FilterSidebar';
 import { ProductCardSkeleton } from '@/components/Skeleton';

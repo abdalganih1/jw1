@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products as staticProducts, testimonials, instagramPosts } from '@/data/products';
-import { API_URL, mapApiProduct, ApiCategory, mapApiCategory } from '@/lib/api';
+import { API_URL, mapApiProduct, mapApiCategory } from '@/lib/api';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -30,7 +30,6 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
-  const featuredProducts = products.slice(0, 4);
   const bestSellers = products.length > 8 ? products.slice(4, 8) : products;
   const newProducts = products.length > 8 ? products.slice(0, 4) : products;
 
