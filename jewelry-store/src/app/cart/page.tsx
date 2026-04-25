@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Toast from '@/components/Toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CartPage() {
+  const { lang, t } = useLanguage();
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
@@ -103,33 +105,33 @@ export default function CartPage() {
       }
     }
     setCartItems(items => items.filter(i => i.id !== item.id));
-    setToast({ isVisible: true, message: 'تم حذف المنتج من السلة' });
+    setToast({ isVisible: true, message: t('cart.removed') });
   };
 
   const applyCoupon = () => {
     if (couponCode.toUpperCase() === 'WELCOME10') {
       setAppliedCoupon('WELCOME10');
-      setToast({ isVisible: true, message: 'تم تطبيق الكوبون بنجاح! خصم 10%' });
+      setToast({ isVisible: true, message: t('cart.couponApplied') });
     } else {
-      setToast({ isVisible: true, message: 'كوبون غير صالح' });
+      setToast({ isVisible: true, message: t('cart.invalidCoupon') });
     }
     setCouponCode('');
   };
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-[#faf9f7] flex items-center justify-center" dir="rtl">
+      <div className="min-h-screen bg-[#faf9f7] flex items-center justify-center" dir={lang === 'en' ? 'ltr' : 'rtl'}>
         <div className="text-center">
           <svg className="w-24 h-24 text-gray-300 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">سلة التسوق فارغة</h1>
-          <p className="text-gray-600 mb-6">أضف بعض المنتجات للبدء</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('cart.empty')}</h1>
+          <p className="text-gray-600 mb-6">{t('cart.emptySub')}</p>
           <Link
             href="/shop"
             className="inline-flex items-center gap-2 px-6 py-3 bg-[#c9a962] text-white rounded-lg hover:bg-[#b8944f] transition-colors"
           >
-            تسوق الآن
+            {t('cart.shopNow')}
           </Link>
         </div>
       </div>
@@ -137,9 +139,9 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf9f7]">
+    <div className="min-h-screen bg-[#faf9f7]" dir={lang === 'en' ? 'ltr' : 'rtl'}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-display font-bold text-gray-900 mb-8" dir="rtl">سلة التسوق</h1>
+        <h1 className="text-3xl font-display font-bold text-gray-900 mb-8" dir={lang === 'en' ? 'ltr' : 'rtl'}>{t('cart.title')}</h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4" dir="rtl">
@@ -202,7 +204,7 @@ export default function CartPage() {
                             onClick={() => removeItem(item)}
                             className="text-red-500 hover:text-red-600 text-sm"
                           >
-                            حذف
+                            {t('cart.removeItem')}
                           </button>
                           <span className="font-bold text-[#c9a962]">
                             {formatPrice(getItemTotal(item))}
@@ -216,13 +218,13 @@ export default function CartPage() {
             })}
           </div>
 
-          <div dir="rtl">
+          <div dir={lang === 'en' ? 'ltr' : 'rtl'}>
             <div className="bg-white rounded-lg p-6 sticky top-24">
-              <h2 className="text-lg font-semibold mb-4">ملخص الطلب</h2>
+              <h2 className="text-lg font-semibold mb-4">{t('cart.orderSummary')}</h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">المجموع الفرعي</span>
+                  <span className="text-gray-500">{t('cart.subtotal')}</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 {discount > 0 && (
@@ -232,30 +234,30 @@ export default function CartPage() {
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-500">الشحن</span>
-                  <span>{shipping === 0 ? 'مجاني' : formatPrice(shipping)}</span>
+                  <span className="text-gray-500">{t('cart.shipping')}</span>
+                  <span>{shipping === 0 ? t('cart.free') : formatPrice(shipping)}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
-                  <span>الإجمالي</span>
+                  <span>{t('cart.total')}</span>
                   <span className="text-[#c9a962]">{formatPrice(total)}</span>
                 </div>
               </div>
 
               <div className="mt-6">
-                <label className="block text-sm font-medium mb-2">كود الخصم</label>
+                <label className="block text-sm font-medium mb-2">{t('cart.discountCode')}</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="أدخل الكود"
+                    placeholder={t('cart.enterCode')}
                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                   />
                   <button
                     onClick={applyCoupon}
                     className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                   >
-                    تطبيق
+                    {t('cart.apply')}
                   </button>
                 </div>
                 {appliedCoupon && (
@@ -267,14 +269,14 @@ export default function CartPage() {
                 href="/checkout"
                 className="block w-full mt-6 py-3 bg-[#c9a962] text-white text-center rounded-lg font-medium hover:bg-[#b8944f] transition-colors"
               >
-                إتمام الشراء
+                {t('cart.checkout')}
               </Link>
 
               <Link
                 href="/shop"
                 className="block w-full mt-3 py-3 border border-gray-200 text-center rounded-lg font-medium hover:bg-gray-50 transition-colors"
               >
-                متابعة التسوق
+                {t('cart.continueShopping')}
               </Link>
 
               <div className="mt-6 pt-6 border-t space-y-2 text-sm text-gray-500">
@@ -282,13 +284,13 @@ export default function CartPage() {
                   <svg className="w-5 h-5 text-[#c9a962]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
-                  <span>دفع آمن ومشفر</span>
+                  <span>{t('cart.securePayment')}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-[#c9a962]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  <span>إرجاع خلال 30 يوم</span>
+                  <span>{t('cart.returns30')}</span>
                 </div>
               </div>
             </div>

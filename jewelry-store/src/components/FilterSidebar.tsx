@@ -1,6 +1,7 @@
 'use client';
 
 import { categories as staticCategories, metals, stones } from '@/data/products';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FilterSidebarProps {
   selectedCategory: string | null;
@@ -31,6 +32,7 @@ export default function FilterSidebar({
   onSortChange,
   onClearFilters
 }: FilterSidebarProps) {
+  const { t } = useLanguage();
   const categories = apiCategories && apiCategories.length > 0 ? apiCategories : staticCategories;
   const hasFilters = selectedCategory || selectedMetals.length > 0 || selectedStones.length > 0 || priceRange[0] > 0 || priceRange[1] < 15000;
 
@@ -45,13 +47,13 @@ export default function FilterSidebar({
     >
       {/* رأس القسم */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-base font-semibold text-white tracking-wide">التصفية</h2>
+        <h2 className="text-base font-semibold text-white tracking-wide">{t('filter.title')}</h2>
         {hasFilters && (
           <button
             onClick={onClearFilters}
             className="text-xs text-[#c9a962] hover:text-[#e0c070] transition-colors"
           >
-            مسح الكل
+            {t('filter.clearAll')}
           </button>
         )}
       </div>
@@ -61,7 +63,7 @@ export default function FilterSidebar({
 
       {/* الترتيب */}
       <div className="mb-5">
-        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">ترتيب حسب</h3>
+        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">{t('filter.sortBy')}</h3>
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
@@ -72,16 +74,16 @@ export default function FilterSidebar({
             color: '#e8e0d0',
           }}
         >
-          <option value="popular">الأكثر شيوعاً</option>
-          <option value="price-asc">السعر: من الأقل للأعلى</option>
-          <option value="price-desc">السعر: من الأعلى للأقل</option>
-          <option value="newest">الأحدث</option>
+          <option value="popular">{t('filter.popular')}</option>
+          <option value="price-asc">{t('filter.priceAsc')}</option>
+          <option value="price-desc">{t('filter.priceDesc')}</option>
+          <option value="newest">{t('filter.newest')}</option>
         </select>
       </div>
 
       {/* النوع */}
       <div className="mb-5">
-        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">النوع</h3>
+        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">{t('filter.type')}</h3>
         <div className="space-y-1">
           <button
             onClick={() => onCategoryChange(null)}
@@ -90,7 +92,7 @@ export default function FilterSidebar({
                 : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
           >
-            الكل
+            {t('filter.all')}
           </button>
           {categories.map((category) => (
             <button
@@ -111,7 +113,7 @@ export default function FilterSidebar({
 
       {/* المعدن */}
       <div className="mb-5">
-        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">المعدن</h3>
+        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">{t('filter.metal')}</h3>
         <div className="space-y-2.5">
           {metals.map((metal) => (
             <label key={metal.id} className="flex items-center gap-2.5 cursor-pointer group">
@@ -132,7 +134,7 @@ export default function FilterSidebar({
 
       {/* الحجر */}
       <div className="mb-5">
-        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">الحجر الكريم</h3>
+        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">{t('filter.stone')}</h3>
         <div className="space-y-2.5">
           {stones.map((stone) => (
             <label key={stone.id} className="flex items-center gap-2.5 cursor-pointer group">
@@ -153,7 +155,7 @@ export default function FilterSidebar({
 
       {/* نطاق السعر */}
       <div>
-        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">نطاق السعر</h3>
+        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">{t('filter.priceRange')}</h3>
         <div className="space-y-3">
           <input
             type="range"

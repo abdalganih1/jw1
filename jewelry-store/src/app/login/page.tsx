@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LoginPage() {
     const router = useRouter();
     const { login } = useAuth();
+    const { lang, t } = useLanguage();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -28,17 +30,17 @@ export default function LoginPage() {
                 router.push('/account');
             }
         } catch {
-            setError('بيانات الدخول غير صحيحة');
+            setError(t('login.incorrect'));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#faf9f7] flex flex-col justify-center py-12 sm:px-6 lg:px-8" dir="rtl">
+        <div className="min-h-screen bg-[#faf9f7] flex flex-col justify-center py-12 sm:px-6 lg:px-8" dir={lang === 'en' ? 'ltr' : 'rtl'}>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    تسجيل الدخول
+                    {t('login.title')}
                 </h2>
             </div>
 
@@ -53,7 +55,7 @@ export default function LoginPage() {
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                                اسم المستخدم
+                                {t('login.username')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -67,7 +69,7 @@ export default function LoginPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                                كلمة المرور
+                                {t('login.password')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -83,7 +85,7 @@ export default function LoginPage() {
                         <div className="flex items-center justify-between">
                             <div className="text-sm">
                                 <Link href="/register" className="font-medium text-[#c9a962] hover:text-[#b8944f]">
-                                    ليس لديك حساب؟
+                                    {t('login.noAccount')}
                                 </Link>
                             </div>
                         </div>
@@ -94,7 +96,7 @@ export default function LoginPage() {
                                 disabled={loading}
                                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#c9a962] hover:bg-[#b8944f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c9a962] disabled:opacity-50"
                             >
-                                {loading ? 'الرجاء الانتظار...' : 'دخول'}
+                                {loading ? t('login.pleaseWait') : t('login.signIn')}
                             </button>
                         </div>
                     </form>

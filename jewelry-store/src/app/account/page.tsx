@@ -9,14 +9,7 @@ import { API_URL, mapApiProduct } from '@/lib/api';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useAuth } from '@/contexts/AuthContext';
-
-const tabs = [
-  { id: 'orders', label: 'طلباتي' },
-  { id: 'designs', label: '✨ تصميماتي' },
-  { id: 'addresses', label: 'العناوين' },
-  { id: 'favorites', label: 'المفضلة' },
-  { id: 'profile', label: 'الملف الشخصي' },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function AccountContent() {
   const router = useRouter();
@@ -26,6 +19,15 @@ function AccountContent() {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>(staticProducts);
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
+  const { lang, t } = useLanguage();
+
+  const tabs = [
+    { id: 'orders', label: t('account.orders') },
+    { id: 'designs', label: `✨ ${t('account.designs')}` },
+    { id: 'addresses', label: t('account.addresses') },
+    { id: 'favorites', label: t('account.favorites') },
+    { id: 'profile', label: t('account.profile') },
+  ];
   const [designs, setDesigns] = useState<Array<{
     id: number;
     selected_options: Record<string, unknown>;
@@ -186,8 +188,8 @@ function AccountContent() {
                     {tab.label}
                   </button>
                 ))}
-                <button onClick={() => { logout(); router.push('/'); }} className="w-full text-right px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors">
-                  تسجيل الخروج
+                <button onClick={() => { logout(); router.push('/'); }} className={`w-full ${lang === 'en' ? 'text-left' : 'text-right'} px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors`}>
+                  {t('account.logout')}
                 </button>
               </nav>
             </div>
@@ -207,7 +209,7 @@ function AccountContent() {
                     <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
-                    <p className="text-gray-500">لا توجد طلبات بعد</p>
+                    <p className="text-gray-500">{t('account.noOrders')}</p>
                   </div>
                 ) : (
                 <div className="space-y-4">
@@ -249,8 +251,8 @@ function AccountContent() {
                     <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                     </svg>
-                    <p className="text-gray-500 mb-4">لا توجد تصميمات بعد</p>
-                    <Link href="/builder" className="text-[#c9a962] font-medium hover:underline">ابدأ بتصميم قطعتك الأولى</Link>
+                    <p className="text-gray-500 mb-4">{t('account.noDesigns')}</p>
+                    <Link href="/builder" className="text-[#c9a962] font-medium hover:underline">{t('account.startDesign')}</Link>
                   </div>
                 ) : (
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -327,7 +329,7 @@ function AccountContent() {
                       <svg className="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                       </svg>
-                      <span className="text-gray-500">إضافة عنوان جديد</span>
+                      <span className="text-gray-500">{t('account.addAddressTitle')}</span>
                     </div>
                   </div>
                 </div>
@@ -433,7 +435,7 @@ function AccountContent() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">تأكيد كلمة المرور</label>
+                       <label className="block text-sm font-medium mb-1">{t('account.confirmPassword')}</label>
                       <input
                         type="password"
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
@@ -443,7 +445,7 @@ function AccountContent() {
                       type="submit"
                       className="px-6 py-2 border border-[#c9a962] text-[#c9a962] rounded-lg hover:bg-[#c9a962]/10 transition-colors"
                     >
-                      تغيير كلمة المرور
+                      {t('account.changePassword')}
                     </button>
                   </form>
                 </div>
@@ -459,7 +461,4 @@ function AccountContent() {
 export default function AccountPage() {
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" /></div>}>
-      <AccountContent />
-    </Suspense>
-  );
-}
+      <AccountContent                           

@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CheckoutPage() {
+  const { lang, t } = useLanguage();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [subtotal, setSubtotal] = useState(0);
@@ -73,15 +75,15 @@ export default function CheckoutPage() {
         });
 
         if (res.ok) {
-          alert('تم تأكيد الطلب بنجاح! شكراً لتسوقكم معنا.');
+          alert(t('checkout.orderSuccess'));
           router.push('/shop');
         } else {
           const errData = await res.json();
-          alert(`فشل الطلب: ${errData.detail || 'حدث خطأ غير متوقع'}`);
+          alert(t('checkout.orderError'));
         }
       } catch (e) {
         console.error(e);
-        alert('عذراً، لم نتمكن من معالجة الطلب.');
+        alert(t('checkout.orderError'));
       } finally {
         setIsProcessing(false);
       }
@@ -101,12 +103,12 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9f7]">
+    <div className="min-h-screen bg-[#faf9f7]" dir={lang === 'en' ? 'ltr' : 'rtl'}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-display font-bold text-gray-900 mb-8 text-right" dir="rtl">إتمام الشراء</h1>
+        <h1 className="text-3xl font-display font-bold text-gray-900 mb-8 text-right" dir={lang === 'en' ? 'ltr' : 'rtl'}>{t('checkout.title')}</h1>
 
-        <div className="flex items-center justify-center gap-4 mb-8" dir="rtl">
-          {['معلومات الشحن', 'الدفع', 'تأكيد الطلب'].map((label, index) => (
+        <div className="flex items-center justify-center gap-4 mb-8" dir={lang === 'en' ? 'ltr' : 'rtl'}>
+          {[t('checkout.shippingInfo'), t('checkout.payment'), t('checkout.confirm')].map((label, index) => (
             <div key={index} className="flex items-center">
               <div className={`
                 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
@@ -123,14 +125,14 @@ export default function CheckoutPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          <form onSubmit={handleSubmit} className="lg:col-span-2" dir="rtl">
+          <form onSubmit={handleSubmit} className="lg:col-span-2" dir={lang === 'en' ? 'ltr' : 'rtl'}>
             {step === 1 && (
               <div className="bg-white rounded-lg p-6 space-y-6">
-                <h2 className="text-lg font-semibold">معلومات الشحن</h2>
+                <h2 className="text-lg font-semibold">{t('checkout.shippingInfo')}</h2>
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">الاسم الأول</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.firstName')}</label>
                     <input
                       type="text"
                       name="firstName"
@@ -141,7 +143,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">الاسم الأخير</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.lastName')}</label>
                     <input
                       type="text"
                       name="lastName"
@@ -155,7 +157,7 @@ export default function CheckoutPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">البريد الإلكتروني</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.email')}</label>
                     <input
                       type="email"
                       name="email"
@@ -167,7 +169,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">رقم الهاتف</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.phone')}</label>
                     <input
                       type="tel"
                       name="phone"
@@ -181,7 +183,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">العنوان</label>
+                  <label className="block text-sm font-medium mb-1">{t('checkout.address')}</label>
                   <input
                     type="text"
                     name="address"
@@ -194,7 +196,7 @@ export default function CheckoutPage() {
 
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">المدينة</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.city')}</label>
                     <input
                       type="text"
                       name="city"
@@ -205,7 +207,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">المحافظة</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.state')}</label>
                     <select
                       name="state"
                       value={formData.state}
@@ -213,7 +215,7 @@ export default function CheckoutPage() {
                       required
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                     >
-                      <option value="">اختر المحافظة</option>
+                      <option value="">{t('checkout.chooseState')}</option>
                       <option value="hama">حماة</option>
                       <option value="damascus">دمشق</option>
                       <option value="aleppo">حلب</option>
@@ -231,7 +233,7 @@ export default function CheckoutPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">الرمز البريدي</label>
+                    <label className="block text-sm font-medium mb-1">{t('checkout.zip')}</label>
                     <input
                       type="text"
                       name="zip"
@@ -248,14 +250,14 @@ export default function CheckoutPage() {
 
             {step === 2 && (
               <div className="bg-white rounded-lg p-6 space-y-6">
-                <h2 className="text-lg font-semibold">طريقة الدفع</h2>
+                <h2 className="text-lg font-semibold">{t('checkout.paymentMethod')}</h2>
 
                 <div className="space-y-3">
                   {[
-                    { id: 'card', label: 'بطاقة ائتمان', icons: ['VISA', 'MasterCard'] },
-                    { id: 'mada', label: 'مدى', icons: ['MADA'] },
+                    { id: 'card', label: t('checkout.creditCard'), icons: ['VISA', 'MasterCard'] },
+                    { id: 'mada', label: t('checkout.mada'), icons: ['MADA'] },
                     { id: 'apple', label: 'Apple Pay', icons: [''] },
-                    { id: 'cod', label: 'الدفع عند الاستلام', icons: ['💵'] },
+                    { id: 'cod', label: t('checkout.cod'), icons: ['💵'] },
                   ].map((method) => (
                     <label
                       key={method.id}
@@ -285,7 +287,7 @@ export default function CheckoutPage() {
                 {formData.paymentMethod === 'card' && (
                   <div className="space-y-4 pt-4 border-t">
                     <div>
-                      <label className="block text-sm font-medium mb-1">رقم البطاقة</label>
+                      <label className="block text-sm font-medium mb-1">{t('checkout.cardNumber')}</label>
                       <input
                         type="text"
                         name="cardNumber"
@@ -298,7 +300,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium mb-1">تاريخ الانتهاء</label>
+                        <label className="block text-sm font-medium mb-1">{t('checkout.expiry')}</label>
                         <input
                           type="text"
                           name="cardExpiry"
@@ -323,7 +325,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">اسم حامل البطاقة</label>
+                      <label className="block text-sm font-medium mb-1">{t('checkout.cardName')}</label>
                       <input
                         type="text"
                         name="cardName"
@@ -340,11 +342,11 @@ export default function CheckoutPage() {
 
             {step === 3 && (
               <div className="bg-white rounded-lg p-6 space-y-6">
-                <h2 className="text-lg font-semibold">تأكيد الطلب</h2>
+                <h2 className="text-lg font-semibold">{t('checkout.confirmOrder')}</h2>
 
                 <div className="space-y-4">
                   <div className="p-4 bg-[#faf9f7] rounded-lg">
-                    <h3 className="font-medium mb-2">عنوان الشحن</h3>
+                    <h3 className="font-medium mb-2">{t('checkout.shippingAddress')}</h3>
                     <p className="text-sm text-gray-600">
                       {formData.firstName} {formData.lastName}<br />
                       {formData.address}<br />
@@ -354,9 +356,9 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="p-4 bg-[#faf9f7] rounded-lg">
-                    <h3 className="font-medium mb-2">طريقة الدفع</h3>
+                    <h3 className="font-medium mb-2">{t('checkout.paymentMethod')}</h3>
                     <p className="text-sm text-gray-600">
-                      {formData.paymentMethod === 'card' ? 'بطاقة ائتمان' : formData.paymentMethod === 'mada' ? 'مدى' : formData.paymentMethod === 'apple' ? 'Apple Pay' : 'الدفع عند الاستلام'}
+                      {formData.paymentMethod === 'card' ? t('checkout.creditCard') : formData.paymentMethod === 'mada' ? t('checkout.mada') : formData.paymentMethod === 'apple' ? 'Apple Pay' : t('checkout.cod')}
                       {formData.cardNumber && ` •••• ${formData.cardNumber.slice(-4)}`}
                     </p>
                   </div>
@@ -365,7 +367,7 @@ export default function CheckoutPage() {
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" required className="mt-1 w-4 h-4 text-[#c9a962] rounded focus:ring-[#c9a962]" />
                   <span className="text-sm text-gray-600">
-                    أوافق على <Link href="/terms" className="text-[#c9a962] hover:underline">الشروط والأحكام</Link> و <Link href="/privacy" className="text-[#c9a962] hover:underline">سياسة الخصوصية</Link>
+                    {t('checkout.agree')} <Link href="/terms" className="text-[#c9a962] hover:underline">{t('checkout.terms')}</Link> {t('checkout.and')} <Link href="/privacy" className="text-[#c9a962] hover:underline">{t('checkout.privacy')}</Link>
                   </span>
                 </label>
               </div>
@@ -378,7 +380,7 @@ export default function CheckoutPage() {
                   onClick={() => setStep(step - 1)}
                   className="flex-1 py-3 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
-                  السابق
+                  {t('checkout.previous')}
                 </button>
               )}
               <button
@@ -386,26 +388,26 @@ export default function CheckoutPage() {
                 disabled={isProcessing}
                 className="flex-1 py-3 bg-[#c9a962] text-white rounded-lg font-medium hover:bg-[#b8944f] transition-colors disabled:opacity-50"
               >
-                {isProcessing ? 'جاري المعالجة...' : (step === 3 ? 'تأكيد الطلب' : 'التالي')}
+                {isProcessing ? t('checkout.processing') : (step === 3 ? t('checkout.confirmOrder') : t('checkout.next'))}
               </button>
             </div>
           </form>
 
-          <div className="lg:col-span-1" dir="rtl">
+          <div className="lg:col-span-1" dir={lang === 'en' ? 'ltr' : 'rtl'}>
             <div className="bg-white rounded-lg p-6 sticky top-24">
-              <h2 className="text-lg font-semibold mb-4">ملخص الطلب</h2>
+              <h2 className="text-lg font-semibold mb-4">{t('checkout.orderSummary')}</h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">المجموع الفرعي</span>
+                  <span className="text-gray-500">{t('checkout.subtotal')}</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">الشحن</span>
-                  <span className="text-green-600">{subtotal > 1000 || subtotal === 0 ? 'مجاني' : formatPrice(50)}</span>
+                  <span className="text-gray-500">{t('checkout.shipping')}</span>
+                  <span className="text-green-600">{subtotal > 1000 || subtotal === 0 ? t('cart.free') : formatPrice(50)}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
-                  <span>الإجمالي</span>
+                  <span>{t('checkout.total')}</span>
                   <span className="text-[#c9a962]">
                     {formatPrice(subtotal + (subtotal > 1000 || subtotal === 0 ? 0 : 50))}
                   </span>
@@ -416,7 +418,7 @@ export default function CheckoutPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span className="text-sm">دفع آمن ومشفر</span>
+                <span className="text-sm">{t('checkout.securePayment')}</span>
               </div>
             </div>
           </div>

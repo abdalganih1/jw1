@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { lang, t } = useLanguage();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
@@ -35,21 +37,20 @@ export default function RegisterPage() {
                 throw new Error(errorData.detail || 'تعذر إنشاء الحساب');
             }
 
-            // Automatically log them in after register or just redirect to login
             router.push('/login');
 
         } catch (err: any) {
-            setError(err.message || 'حدث خطأ، حاول مرة أخرى');
+            setError(err.message || t('register.error'));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#faf9f7] flex flex-col justify-center py-12 sm:px-6 lg:px-8" dir="rtl">
+        <div className="min-h-screen bg-[#faf9f7] flex flex-col justify-center py-12 sm:px-6 lg:px-8" dir={lang === 'en' ? 'ltr' : 'rtl'}>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                    إنشاء حساب جديد
+                    {t('register.title')}
                 </h2>
             </div>
 
@@ -65,7 +66,7 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">
-                                    الاسم الأول
+                                    {t('register.firstName')}
                                 </label>
                                 <div className="mt-1">
                                     <input
@@ -78,7 +79,7 @@ export default function RegisterPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">
-                                    الاسم الأخير
+                                    {t('register.lastName')}
                                 </label>
                                 <div className="mt-1">
                                     <input
@@ -93,7 +94,7 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                                اسم المستخدم
+                                {t('register.username')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -107,7 +108,7 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                                البريد الإلكتروني
+                                {t('register.email')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -122,7 +123,7 @@ export default function RegisterPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700">
-                                كلمة المرور
+                                {t('register.password')}
                             </label>
                             <div className="mt-1">
                                 <input
@@ -138,7 +139,7 @@ export default function RegisterPage() {
                         <div className="flex items-center justify-between">
                             <div className="text-sm">
                                 <Link href="/login" className="font-medium text-[#c9a962] hover:text-[#b8944f]">
-                                    لديك حساب بالفعل؟
+                                    {t('register.haveAccount')}
                                 </Link>
                             </div>
                         </div>
@@ -149,7 +150,7 @@ export default function RegisterPage() {
                                 disabled={loading}
                                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#c9a962] hover:bg-[#b8944f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#c9a962] disabled:opacity-50"
                             >
-                                {loading ? 'الرجاء الانتظار...' : 'إنشاء حساب'}
+                                {loading ? t('register.pleaseWait') : t('register.create')}
                             </button>
                         </div>
                     </form>
