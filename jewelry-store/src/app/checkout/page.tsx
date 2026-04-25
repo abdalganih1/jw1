@@ -18,7 +18,7 @@ export default function CheckoutPage() {
     city: '',
     state: '',
     zip: '',
-    country: 'السعودية',
+    country: 'سوريا',
     paymentMethod: 'card',
     cardNumber: '',
     cardExpiry: '',
@@ -59,11 +59,11 @@ export default function CheckoutPage() {
         const token = localStorage.getItem('token');
         const fullAddress = `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}, ${formData.country}`;
         const payload = {
-          payment_method_id: formData.paymentMethod === 'card' ? 1 : formData.paymentMethod === 'mada' ? 2 : 3,
+          payment_method_id: ({ card: 1, mada: 3, apple: 5, cod: 4 } as Record<string,number>)[formData.paymentMethod] || 1,
           shipping_address: fullAddress,
           transfer_receipt: null
         };
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/orders/`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/orders/checkout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">المنطقة</label>
+                    <label className="block text-sm font-medium mb-1">المحافظة</label>
                     <select
                       name="state"
                       value={formData.state}
@@ -213,12 +213,21 @@ export default function CheckoutPage() {
                       required
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#c9a962]"
                     >
-                      <option value="">اختر المنطقة</option>
-                      <option value="riyadh">الرياض</option>
-                      <option value="jeddah">جدة</option>
-                      <option value="makkah">مكة</option>
-                      <option value="madinah">المدينة</option>
-                      <option value="dammam">الدمام</option>
+                      <option value="">اختر المحافظة</option>
+                      <option value="hama">حماة</option>
+                      <option value="damascus">دمشق</option>
+                      <option value="aleppo">حلب</option>
+                      <option value="homs">حمص</option>
+                      <option value="latakia">اللاذقية</option>
+                      <option value="tartus">طرطوس</option>
+                      <option value="idlib">إدلب</option>
+                      <option value="deir">دير الزور</option>
+                      <option value="raqqa">الرقة</option>
+                      <option value="hasaka">الحسكة</option>
+                      <option value="daraa">درعا</option>
+                      <option value="suwayda">السويداء</option>
+                      <option value="quneitra">القنيطرة</option>
+                      <option value="rif">ريف دمشق</option>
                     </select>
                   </div>
                   <div>
@@ -245,7 +254,8 @@ export default function CheckoutPage() {
                   {[
                     { id: 'card', label: 'بطاقة ائتمان', icons: ['VISA', 'MasterCard'] },
                     { id: 'mada', label: 'مدى', icons: ['MADA'] },
-                    { id: 'apple', label: 'Apple Pay', icons: [] },
+                    { id: 'apple', label: 'Apple Pay', icons: [''] },
+                    { id: 'cod', label: 'الدفع عند الاستلام', icons: ['💵'] },
                   ].map((method) => (
                     <label
                       key={method.id}
@@ -346,7 +356,7 @@ export default function CheckoutPage() {
                   <div className="p-4 bg-[#faf9f7] rounded-lg">
                     <h3 className="font-medium mb-2">طريقة الدفع</h3>
                     <p className="text-sm text-gray-600">
-                      {formData.paymentMethod === 'card' ? 'بطاقة ائتمان' : formData.paymentMethod === 'mada' ? 'مدى' : 'Apple Pay'}
+                      {formData.paymentMethod === 'card' ? 'بطاقة ائتمان' : formData.paymentMethod === 'mada' ? 'مدى' : formData.paymentMethod === 'apple' ? 'Apple Pay' : 'الدفع عند الاستلام'}
                       {formData.cardNumber && ` •••• ${formData.cardNumber.slice(-4)}`}
                     </p>
                   </div>

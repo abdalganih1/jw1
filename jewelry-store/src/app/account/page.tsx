@@ -37,7 +37,7 @@ function AccountContent() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [addresses, setAddresses] = useState<Array<{ id: string; label: string; name: string; street: string; city: string; country: string; phone: string; isDefault: boolean }>>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressForm, setAddressForm] = useState({ label: '', name: '', street: '', city: '', country: 'السعودية', phone: '' });
+  const [addressForm, setAddressForm] = useState({ label: '', name: '', street: '', city: '', country: 'سوريا', phone: '' });
 
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
@@ -53,7 +53,7 @@ function AccountContent() {
   useEffect(() => {
     if (activeTab === 'orders' && isAuthenticated && token) {
       setOrdersLoading(true);
-      fetch(`${API_URL}/orders/my-orders`, {
+      fetch(`${API_URL}/orders/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(r => r.ok ? r.json() : [])
@@ -85,7 +85,7 @@ function AccountContent() {
     if (!addressForm.name || !addressForm.street || !addressForm.city) return;
     const newAddr = { ...addressForm, id: Date.now().toString(), isDefault: addresses.length === 0 };
     saveAddresses([...addresses, newAddr]);
-    setAddressForm({ label: '', name: '', street: '', city: '', country: 'السعودية', phone: '' });
+    setAddressForm({ label: '', name: '', street: '', city: '', country: 'سوريا', phone: '' });
     setShowAddressForm(false);
   };
 
@@ -197,15 +197,15 @@ function AccountContent() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="text-right">
                           <p className="font-medium">#{order.id}</p>
-                          <p className="text-sm text-gray-500">{order.created_at ? new Date(order.created_at).toLocaleDateString('ar-SA') : ''}</p>
+                          <p className="text-sm text-gray-500">{order.order_date ? new Date(order.order_date).toLocaleDateString('ar-SA') : ''}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(order.status || 'processing')}`}>
-                          {getStatusText(order.status || 'processing')}
+                        <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor((order.status || 'PENDING').toLowerCase())}`}>
+                          {getStatusText((order.status || 'PENDING').toLowerCase())}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t">
-                        <span className="font-bold text-[#c9a962]">{formatPrice(order.total_price || order.total || 0)}</span>
+                        <span className="font-bold text-[#c9a962]">{formatPrice(order.total_amount || 0)}</span>
                       </div>
                     </div>
                   ))}

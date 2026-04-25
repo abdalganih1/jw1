@@ -47,18 +47,18 @@ const coreValues = [
 
 // ── بيانات Timeline ──────────────────────────────────────────────────
 const milestones = [
-    { year: '2020', title: 'تأسيس الشركة', desc: 'بدأت رحلتنا بحلم صغير وفريق متحمس لتغيير صناعة المجوهرات الفاخرة في المنطقة.', color: '#c9a962' },
-    { year: '2021', title: 'إطلاق التقنية', desc: 'أطلقنا أول منصتنا الرقمية لتصميم المجوهرات بالذكاء الاصطناعي، وفزنا بجائزة الابتكار التقني.', color: '#c9a962' },
-    { year: '2022', title: 'التوسع الإقليمي', desc: 'فتحنا أبوابنا في 5 دول خليجية وضاعفنا قاعدة عملائنا ثلاث مرات خلال عام واحد.', color: '#c9a962' },
-    { year: '2023', title: 'مئة ألف عميل', desc: 'تجاوزنا 100,000 عميل سعيد وأطلقنا خدمة التصميم الشخصي المدعومة بالذكاء الاصطناعي.', color: '#c9a962' },
-    { year: '2024', title: 'الريادة العالمية', desc: 'حصلنا على جوائز دولية وأصبحنا المرجع الأول لمجوهرات الذكاء الاصطناعي في العالم العربي.', color: '#c9a962' },
+    { year: '2024', title: 'بداية الفكرة', desc: 'بدأنا بفكرة جمعت بين التقنية والمجوهرات في المعهد التقاني للحاسوب بقسم هندسة البرمجيات.', color: '#c9a962' },
+    { year: '2024', title: 'التخطيط والتصميم', desc: 'صمّمنا واجهة المستخدم وبنية النظام واخترنا التقنيات المناسبة لتحقيق رؤيتنا.', color: '#c9a962' },
+    { year: '2025', title: 'التطوير والبرمجة', desc: 'بدأنا ببرمجة المنصة باستخدام Next.js و FastAPI مع دمج الذكاء الاصطناعي لتصميم المجوهرات.', color: '#c9a962' },
+    { year: '2025', title: 'الاختبار والتحسين', desc: 'اختبرنا المنصة بشكل شامل وعالجنا الأخطاء وحسّنا الأداء والتجربة.', color: '#c9a962' },
+    { year: '2025', title: 'الإطلاق', desc: 'نقدّم مشروع تخرّجنا: منصة LUXE لتصميم المجوهرات بالذكاء الاصطناعي.', color: '#c9a962' },
 ];
 
 // ── الإحصائيات ───────────────────────────────────────────────────────
 const stats = [
-    { value: '+50K', label: 'عميل سعيد' },
-    { value: '+100K', label: 'قطعة مصممة' },
-    { value: '+15', label: 'جائزة دولية' },
+    { value: '8', label: 'أعضاء الفريق' },
+    { value: '1', label: 'مشروع تخرّج' },
+    { value: '∞', label: 'شغف وإبداع' },
 ];
 
 export default function AboutPage() {
@@ -75,16 +75,16 @@ export default function AboutPage() {
 
     // ترجمة Timeline
     const localizedMilestones = [
-        { year: '2020', title: lang === 'en' ? 'Company Founded' : 'تأسيس الشركة', desc: lang === 'en' ? 'Our journey began with a small dream and an enthusiastic team determined to transform the luxury jewelry industry.' : 'بدأت رحلتنا بحلم صغير وفريق متحمس لتغيير صناعة المجوهرات الفاخرة في المنطقة.' },
-        { year: '2021', title: lang === 'en' ? 'Technology Launch' : 'إطلاق التقنية', desc: lang === 'en' ? 'We launched our first AI-powered jewelry design platform and won the Technology Innovation Award.' : 'أطلقنا أول منصتنا الرقمية لتصميم المجوهرات بالذكاء الاصطناعي، وفزنا بجائزة الابتكار التقني.' },
-        { year: '2022', title: lang === 'en' ? 'Regional Expansion' : 'التوسع الإقليمي', desc: lang === 'en' ? 'We expanded to 5 Gulf countries and tripled our customer base within a single year.' : 'فتحنا أبوابنا في 5 دول خليجية وضاعفنا قاعدة عملائنا ثلاث مرات خلال عام واحد.' },
-        { year: '2023', title: lang === 'en' ? '100K Customers' : 'مئة ألف عميل', desc: lang === 'en' ? 'We surpassed 100,000 happy customers and launched our AI-powered personal design service.' : 'تجاوزنا 100,000 عميل سعيد وأطلقنا خدمة التصميم الشخصي المدعومة بالذكاء الاصطناعي.' },
-        { year: '2024', title: lang === 'en' ? 'Global Leadership' : 'الريادة العالمية', desc: lang === 'en' ? 'We received international awards and became the #1 reference for AI jewelry in the Arab world.' : 'حصلنا على جوائز دولية وأصبحنا المرجع الأول لمجوهرات الذكاء الاصطناعي في العالم العربي.' },
+        { year: '2024', title: lang === 'en' ? 'The Idea' : 'بداية الفكرة', desc: lang === 'en' ? 'It all started with an idea that combined technology and jewelry at the Computer Technical Institute, Software Engineering Department.' : 'بدأنا بفكرة جمعت بين التقنية والمجوهرات في المعهد التقاني للحاسوب بقسم هندسة البرمجيات.' },
+        { year: '2024', title: lang === 'en' ? 'Planning & Design' : 'التخطيط والتصميم', desc: lang === 'en' ? 'We designed the user interface, system architecture, and chose the right technologies for our vision.' : 'صمّمنا واجهة المستخدم وبنية النظام واخترنا التقنيات المناسبة لتحقيق رؤيتنا.' },
+        { year: '2025', title: lang === 'en' ? 'Development' : 'التطوير والبرمجة', desc: lang === 'en' ? 'We built the platform using Next.js and FastAPI with AI integration for jewelry design.' : 'بدأنا ببرمجة المنصة باستخدام Next.js و FastAPI مع دمج الذكاء الاصطناعي لتصميم المجوهرات.' },
+        { year: '2025', title: lang === 'en' ? 'Testing & Refinement' : 'الاختبار والتحسين', desc: lang === 'en' ? 'We thoroughly tested the platform, fixed bugs, and improved performance and user experience.' : 'اختبرنا المنصة بشكل شامل وعالجنا الأخطاء وحسّنا الأداء والتجربة.' },
+        { year: '2025', title: lang === 'en' ? 'Launch' : 'الإطلاق', desc: lang === 'en' ? 'Presenting our graduation project: LUXE — an AI-powered jewelry design platform.' : 'نقدّم مشروع تخرّجنا: منصة LUXE لتصميم المجوهرات بالذكاء الاصطناعي.' },
     ];
 
     const statsLabels = lang === 'en'
-        ? [{ value: '+50K', label: 'Happy Customers' }, { value: '+100K', label: 'Pieces Designed' }, { value: '+15', label: 'Int. Awards' }]
-        : [{ value: '+50K', label: 'عميل سعيد' }, { value: '+100K', label: 'قطعة مصممة' }, { value: '+15', label: 'جائزة دولية' }];
+        ? [{ value: '8', label: 'Team Members' }, { value: '1', label: 'Graduation Project' }, { value: '∞', label: 'Passion & Creativity' }]
+        : [{ value: '8', label: 'أعضاء الفريق' }, { value: '1', label: 'مشروع تخرّج' }, { value: '∞', label: 'شغف وإبداع' }];
 
     return (
         <div
@@ -146,8 +146,8 @@ export default function AboutPage() {
                                 boxShadow: '0 8px 24px rgba(201,169,98,0.3)',
                             }}
                         >
-                            <p className="text-[#110d15] text-2xl font-bold leading-none">5+</p>
-                            <p className="text-[#110d15]/80 text-xs mt-1 font-medium">سنوات خبرة</p>
+                            <p className="text-[#110d15] text-2xl font-bold leading-none">8</p>
+                            <p className="text-[#110d15]/80 text-xs mt-1 font-medium">أعضاء الفريق</p>
                         </div>
                     </div>
 
@@ -160,13 +160,13 @@ export default function AboutPage() {
                         </h2>
                         <p className="text-white/55 leading-relaxed mb-4 text-[15px]">
                             {lang === 'en'
-                                ? 'Since 2020, we set out with a clear vision: making luxury jewelry accessible to everyone through AI. We started with a team of five passionate individuals, and today we serve over 50,000 happy customers.'
-                                : 'منذ عام 2020، انطلقنا برؤية واضحة: نجعل المجوهرات الفاخرة في متناول الجميع عبر الذكاء الاصطناعي. بدأنا بفريق من خمسة أشخاص متحمسين، واليوم نفخر بخدمة أكثر من 50,000 عميل سعيد.'}
+                                ? 'We are a team of eight students from the Computer Technical Institute, Software Engineering Department, united by our passion for technology and creativity. We came together to build LUXE — a platform that combines AI with jewelry design to deliver a unique experience.'
+                                : 'نحن فريق مكوّن من ثمانية طلاب من المعهد التقاني للحاسوب، قسم هندسة البرمجيات، جمعنا الشغف بالتكنولوجيا والإبداع. اتحدنا لبناء منصة LUXE التي تجمع بين الذكاء الاصطناعي وتصميم المجوهرات لتقديم تجربة فريدة.'}
                         </p>
                         <p className="text-white/45 leading-relaxed text-[15px] mb-8">
                             {lang === 'en'
-                                ? 'We believe every piece of jewelry carries a story, and our mission is to make that story as unique and special as the person wearing it.'
-                                : 'نؤمن أن كل قطعة مجوهرات تحمل قصة، ومهمتنا أن نجعل تلك القصة فريدة ومميزة تماماً مثل الشخص الذي يرتديها.'}
+                                ? 'Hamdou Al-Akhras, Fadia Moussa, Maram Al-Saleh, Israa Hadidi, Joudy Tannish, Aya Najma, Al-Huda Kirwan, and Rana Al-Obaysi.'
+                                : 'حمدو الأخرس، فادية موسى، مرام الصالح، إسراء حديدي، جودي طنيش، آية نجمة، الهدى كيروان، ورنا العبيسي.'}
                         </p>
 
                         {/* الإحصائيات */}

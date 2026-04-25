@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 from typing import List
 from database import get_db
@@ -18,9 +18,12 @@ from models import (
 )
 from schemas import (
     ProductCreate,
+    ProductUpdate,
     ProductResponse,
     CategoryCreate,
     CategoryResponse,
+    JewelerCreate,
+    JewelerResponse,
     OrderResponse,
     UserResponse,
     CustomDesignRequestResponse,
@@ -207,3 +210,150 @@ def update_order_status(
     order.status = body.new_status
     db.commit()
     return {"message": "Order status updated", "status": order.status.value}
+
+
+@router.get("/products", response_model=List[ProductResponse])
+def get_all_products(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    return (
+        db.query(Product)
+        .options(joinedload(Product.categories), joinedload(Product.images))
+        .all()
+    )
+
+
+@router.put("/products/{product_id}", response_model=ProductResponse)
+def update_product(
+    product_id: int,
+    body: ProductUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    update_data = body.model_dump(exclude_unset=True)
+    category_ids = update_data.pop("category_ids", None)
+    for field, value in update_data.items():
+        setattr(product, field, value)
+    if category_ids is not None:
+        categories = db.query(Category).filter(Category.id.in_(category_ids)).all()
+        product.categories = categories
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+@router.delete("/products/{product_id}")
+def delete_product(
+    product_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    db.delete(product)
+    db.commit()
+    return {"message": "Product deleted"}
+
+
+@router.get("/jewelers", response_model=List[JewelerResponse])
+def get_all_jewelers(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    return db.query(Jeweler).all()
+
+
+@router.post("/jewelers", response_model=JewelerResponse)
+def create_jeweler(
+    jeweler: JewelerCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    new_jeweler = Jeweler(
+        name=jeweler.name,
+        shop_name=jeweler.shop_name,
+        bio=jeweler.bio,
+        address=jeweler.address,
+        phone=jeweler.phone,
+        email=jeweler.email,
+    )
+    db.add(new_jeweler)
+    db.commit()
+    db.refresh(new_jeweler)
+    return new_jeweler
+
+
+@router.get("/orders-detailed")
+def get_all_orders_detailed(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    orders = (
+        db.query(Order)
+        .options(
+            joinedload(Order.user),
+            joinedload(Order.items).joinedload("product"),
+            joinedload(Order.payment_method),
+        )
+        .order_by(Order.order_date.desc())
+        .all()
+    )
+    result = []
+    for o in orders:
+        result.append(
+            {
+                "id": o.id,
+                "user_id": o.user_id,
+                "status": o.status.value if o.status else None,
+                "total_amount": o.total_amount,
+                "shipping_address": o.shipping_address,
+                "transfer_receipt": o.transfer_receipt,
+                "order_date": o.order_date.isoformat() if o.order_date else None,
+                "user": {
+                    "id": o.user.id,
+                    "username": o.user.username,
+                    "email": o.user.email,
+                    "first_name": o.user.first_name,
+                    "last_name": o.user.last_name,
+                    "phone": o.user.phone,
+                }
+                if o.user
+                else None,
+                "payment_method": {
+                    "id": o.payment_method.id,
+                    "method_name": o.payment_method.method_name,
+                }
+                if o.payment_method
+                else None,
+                "items": [
+                    {
+                        "id": item.id,
+                        "product_id": item.product_id,
+                        "quantity": item.quantity,
+                        "unit_price": item.unit_price,
+                        "subtotal": item.subtotal,
+                        "product": {
+                            "id": item.product.id,
+                            "name": item.product.name,
+                            "price": item.product.price,
+                            "image_path": item.product.image_path,
+                        }
+                        if item.product
+                        else None,
+                    }
+                    for item in o.items
+                ],
+            }
+        )
+    return result

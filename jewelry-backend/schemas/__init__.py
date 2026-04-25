@@ -114,6 +114,18 @@ class ProductCreate(ProductBase):
     category_ids: List[int] = []
 
 
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    material: Optional[str] = None
+    karat: Optional[str] = None
+    weight: Optional[float] = None
+    price: Optional[float] = None
+    stock_quantity: Optional[int] = None
+    description: Optional[str] = None
+    image_path: Optional[str] = None
+    category_ids: Optional[List[int]] = None
+
+
 class ProductResponse(ProductBase):
     id: int
     jeweler_id: int

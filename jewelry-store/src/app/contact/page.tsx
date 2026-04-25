@@ -82,8 +82,8 @@ function ContactContent() {
         </svg>
       ),
       title: t('الهاتف', 'Phone'),
-      line1: '+966 11 123 4567',
-      line2: '+966 50 123 4567',
+      line1: '+963 953 330 792',
+      line2: '',
     },
     {
       icon: (
@@ -92,8 +92,8 @@ function ContactContent() {
         </svg>
       ),
       title: t('البريد الإلكتروني', 'Email'),
-      line1: 'info@viveltgold.sa',
-      line2: 'support@viveltgold.sa',
+      line1: 'jewellerystory@gmail.com',
+      line2: '',
     },
     {
       icon: (
@@ -103,8 +103,8 @@ function ContactContent() {
         </svg>
       ),
       title: t('العنوان', 'Address'),
-      line1: t('الرياض، المملكة العربية السعودية', 'Riyadh, Saudi Arabia'),
-      line2: t('طريق الملك فهد، برج المملكة', 'King Fahd Road, Kingdom Tower'),
+      line1: t('سوريا، حماة', 'Syria, Hama'),
+      line2: '',
     },
     {
       icon: (

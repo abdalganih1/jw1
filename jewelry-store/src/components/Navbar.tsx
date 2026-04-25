@@ -112,7 +112,7 @@ const navCategories: Array<{
         },
       ],
       promoImage: {
-        src: 'https://images.unsplash.com/photo-1573408301185-9519f94250ac?w=400&h=500&fit=crop',
+        src: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&h=500&fit=crop',
         alt: 'مجوهرات ذهب',
         label: 'ذهب',
         sublabel: 'أناقة خالدة',
@@ -456,7 +456,7 @@ export default function Navbar() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="text-[11px]">KSA</span>
+                <span className="text-[11px]">سوريا</span>
               </button>
 
             </div>

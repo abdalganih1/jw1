@@ -12,11 +12,22 @@ function ShopContent() {
   const categoryParam = searchParams.get('category');
   const sortParam = searchParams.get('sort');
   const searchParam = searchParams.get('search');
+  const materialParam = searchParams.get('material');
+  const styleParam = searchParams.get('style');
+  const occasionParam = searchParams.get('occasion');
+  const minPriceParam = searchParams.get('minPrice');
+  const maxPriceParam = searchParams.get('maxPrice');
+  const karatParam = searchParams.get('karat');
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
-  const [selectedMetals, setSelectedMetals] = useState<string[]>([]);
+  const [selectedMetals, setSelectedMetals] = useState<string[]>(
+    materialParam ? [materialParam.toLowerCase()] : []
+  );
   const [selectedStones, setSelectedStones] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 15000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    minPriceParam ? parseInt(minPriceParam) : 0,
+    maxPriceParam ? parseInt(maxPriceParam) : 15000
+  ]);
   const [sortBy, setSortBy] = useState(sortParam || 'popular');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,8 +48,9 @@ function ShopContent() {
             price: p.price,
             originalPrice: p.price * 1.2,
             category: p.categories && p.categories.length > 0 ? (p.categories[0].id === 1 ? 'rings' : p.categories[0].id === 2 ? 'necklaces' : 'bracelets') : 'rings',
-            metal: 'gold',
+            metal: p.material?.toLowerCase() || 'gold',
             stone: 'diamond',
+            karat: p.karat || '',
             images: p.images && p.images.length > 0 ? p.images.map((img: any) => img.image_path) : ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'],
             inStock: p.stock_quantity > 0,
             rating: 5.0,
@@ -72,6 +84,43 @@ function ShopContent() {
       result = result.filter(p => p.stone && selectedStones.includes(p.stone));
     }
 
+    if (karatParam) {
+      result = result.filter(p => p.karat === karatParam);
+    }
+
+    if (styleParam) {
+      const styleKeywords: Record<string, string[]> = {
+        modern: ['عصري', 'حديث', 'modern', 'contemporary'],
+        classic: ['كلاسيك', 'تقليدي', 'classic', 'traditional'],
+        solitaire: ['سوليتير', 'solitaire', 'مفرد'],
+        twins: ['توينز', 'twins', 'مزدوج'],
+        halo: ['هالو', 'halo', 'هالة'],
+        'side-stone': ['جانبية', 'side stone', 'side-stone'],
+      };
+      const keywords = styleKeywords[styleParam.toLowerCase()] || [styleParam.toLowerCase()];
+      result = result.filter(p => {
+        const text = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''}`.toLowerCase();
+        return keywords.some(kw => text.includes(kw));
+      });
+    }
+
+    if (occasionParam) {
+      const occasionKeywords: Record<string, string[]> = {
+        wedding: ['زفاف', 'عرس', 'wedding', 'marriage'],
+        engagement: ['خطوبة', 'engagement', 'تقدم'],
+        gifts: ['هدية', 'هدايا', 'gift', 'مناسبة', 'عيد'],
+        birthday: ['عيد ميلاد', 'birthday'],
+        'mothers-day': ['أم', 'mother', 'يوم الأم'],
+        graduation: ['تخرج', 'graduation'],
+        valentines: ['حب', 'valentine', 'عيد الحب'],
+      };
+      const keywords = occasionKeywords[occasionParam.toLowerCase()] || [occasionParam.toLowerCase()];
+      result = result.filter(p => {
+        const text = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''}`.toLowerCase();
+        return keywords.some(kw => text.includes(kw));
+      });
+    }
+
     result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
     if (searchParam) {
@@ -100,7 +149,7 @@ function ShopContent() {
     }
 
     return result;
-  }, [selectedCategory, selectedMetals, selectedStones, priceRange, sortBy]);
+  }, [productsData, searchParam, selectedCategory, selectedMetals, selectedStones, priceRange, sortBy, styleParam, occasionParam, karatParam]);
 
   const handleMetalChange = (metal: string) => {
     setSelectedMetals(prev =>
