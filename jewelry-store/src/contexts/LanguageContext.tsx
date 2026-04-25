@@ -31,7 +31,6 @@ export const translations: Record<Language, Record<string, string>> = {
         'nav.contact': 'تواصل معنا',
         'nav.search': 'ابحثي عن المجوهرات...',
         'nav.language': 'عربي',
-        'nav.country': 'KSA',
         // Hero (الصفحة الرئيسية)
         'home.hero.badge': 'مجوهرات فاخرة',
         'home.hero.title1': 'أناقة',
@@ -458,7 +457,6 @@ export const translations: Record<Language, Record<string, string>> = {
         'nav.contact': 'Contact Us',
         'nav.search': 'Search jewelry...',
         'nav.language': 'English',
-        'nav.country': 'KSA',
         // Hero
         'home.hero.badge': 'Luxury Jewelry',
         'home.hero.title1': 'Elegance',

@@ -3,8 +3,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { API_URL, resolveImageUrl } from '@/lib/api';
 
 interface ProductCardProps {
   product: Product;
@@ -12,9 +13,66 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const { lang } = useLanguage();
   const t = (ar: string, en: string) => lang === 'en' ? en : ar;
+
+  // ── المفضلة: قراءة من localStorage ──
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const saved = localStorage.getItem('favorites');
+      if (!saved) return false;
+      return JSON.parse(saved).includes(String(product.id));
+    } catch { return false; }
+  });
+
+  const toggleFavorite = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const saved = localStorage.getItem('favorites');
+      let favs: string[] = saved ? JSON.parse(saved) : [];
+      const pid = String(product.id);
+      if (favs.includes(pid)) {
+        favs = favs.filter(id => id !== pid);
+        setIsFavorite(false);
+      } else {
+        favs.push(pid);
+        setIsFavorite(true);
+      }
+      localStorage.setItem('favorites', JSON.stringify(favs));
+      window.dispatchEvent(new Event('storage'));
+    } catch {}
+  }, [product.id]);
+
+  // ── السلة: إضافة سريعة ──
+  const handleQuickAdd = useCallback(async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/cart/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ product_id: parseInt(String(product.id)), quantity: 1 }),
+      });
+      if (res.ok) {
+        const cart = localStorage.getItem('cart');
+        const items = cart ? JSON.parse(cart) : [];
+        const existing = items.find((i: any) => String(i.product_id) === String(product.id));
+        if (existing) { existing.quantity += 1; } else { items.push({ product_id: parseInt(String(product.id)), quantity: 1 }); }
+        localStorage.setItem('cart', JSON.stringify(items));
+        window.dispatchEvent(new Event('storage'));
+      }
+    } catch {}
+  }, [product.id]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(lang === 'en' ? 'en-US' : 'ar-US', {
@@ -23,6 +81,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       minimumFractionDigits: 0
     }).format(price);
   };
+
+  // حل الصور: تأكد من تمريرها عبر resolveImageUrl
+  const productImage = resolveImageUrl(product.images[0] || '');
+  const productImageHover = product.images.length > 1 ? resolveImageUrl(product.images[1]) : productImage;
 
   return (
     <div
@@ -41,7 +103,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <Link href={`/product/${product.id}`}>
         <div className="relative aspect-square overflow-hidden bg-[#0d0a0e]">
           <Image
-            src={product.images[isHovered && product.images.length > 1 ? 1 : 0]}
+            src={isHovered ? productImageHover : productImage}
             alt={product.nameAr}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-108"
@@ -79,7 +141,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       {/* زر المفضلة */}
       <button
-        onClick={() => setIsFavorite(!isFavorite)}
+        onClick={toggleFavorite}
         className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110"
         style={{
           background: 'rgba(13,10,14,0.7)',
@@ -130,6 +192,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* زر إضافة للسلة */}
         <button
+          onClick={handleQuickAdd}
           className="w-full py-2 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 hover:scale-[1.02]"
           style={{
             background: isHovered ? '#c9a962' : 'transparent',

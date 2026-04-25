@@ -114,6 +114,7 @@ class Product(Base):
     stock_quantity = Column(Integer, default=0)
     description = Column(Text)
     image_path = Column(String(255))
+    color = Column(String(50))
 
     jeweler = relationship("Jeweler", back_populates="products")
     categories = relationship(

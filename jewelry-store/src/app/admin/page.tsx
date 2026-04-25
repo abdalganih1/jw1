@@ -86,7 +86,7 @@ const statusColors: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700', PROCESSING: 'bg-blue-100 text-blue-700', SHIPPED: 'bg-purple-100 text-purple-700', DELIVERED: 'bg-green-100 text-green-700', CANCELLED: 'bg-red-100 text-red-700',
 };
 
-const emptyProduct = { name: '', material: 'Gold', karat: '18K', weight: 0, price: 0, stock_quantity: 1, description: '', image_path: '', jeweler_id: 0, category_ids: [] as number[] };
+const emptyProduct = { name: '', material: 'Gold', karat: '18K', weight: 0, price: 0, stock_quantity: 1, description: '', image_path: '', jeweler_id: 0, category_ids: [] as number[], color: 'Yellow' };
 
 export default function AdminPage() {
   const { user, isAuthenticated, isLoading, token } = useAuth();
@@ -190,6 +190,7 @@ export default function AdminPage() {
       name: p.name, material: p.material || '', karat: p.karat || '', weight: p.weight || 0,
       price: p.price, stock_quantity: p.stock_quantity, description: p.description || '',
       image_path: p.image_path || '', jeweler_id: p.jeweler_id, category_ids: p.categories.map(c => c.id),
+      color: (p as any).color || 'Yellow',
     });
     setShowProductForm(true);
   };
@@ -412,6 +413,13 @@ export default function AdminPage() {
                             <select value={productForm.material} onChange={(e) => setProductForm({ ...productForm, material: e.target.value })}
                               className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]">
                               <option value="Gold">ذهب</option><option value="Silver">فضة</option><option value="Platinum">بلاتين</option><option value="Rose Gold">ذهب وردي</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-1">اللون</label>
+                            <select value={productForm.color} onChange={(e) => setProductForm({ ...productForm, color: e.target.value })}
+                              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]">
+                              <option value="Yellow">ذهب أصفر</option><option value="White">ذهب أبيض</option><option value="Rose">ذهب وردي</option>
                             </select>
                           </div>
                           <div>

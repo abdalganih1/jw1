@@ -101,6 +101,7 @@ class ProductImageResponse(ProductImageBase):
 class ProductBase(BaseModel):
     name: str
     material: Optional[str] = None
+    color: Optional[str] = None
     karat: Optional[str] = None
     weight: Optional[float] = None
     price: float
@@ -117,6 +118,7 @@ class ProductCreate(ProductBase):
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     material: Optional[str] = None
+    color: Optional[str] = None
     karat: Optional[str] = None
     weight: Optional[float] = None
     price: Optional[float] = None
