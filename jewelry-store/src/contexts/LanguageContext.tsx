@@ -351,6 +351,7 @@ export const translations: Record<Language, Record<string, string>> = {
         'nav.price.under300': 'أقل من $300',
         'nav.price.3001k': '$300 - $1,000',
         'nav.price.over1k': 'أكثر من $1,000',
+        'nav.price.over5k': 'أكثر من $5,000',
         // Mega Menu promo labels
         'nav.promo.diamonds': 'تألقي بلا حدود',
         'nav.promo.gold': 'أناقة خالدة',
@@ -777,6 +778,7 @@ export const translations: Record<Language, Record<string, string>> = {
         'nav.price.under300': 'Under $300',
         'nav.price.3001k': '$300 - $1,000',
         'nav.price.over1k': 'Over $1,000',
+        'nav.price.over5k': 'Over $5,000',
         // Mega Menu promo labels
         'nav.promo.diamonds': 'Shine Without Limits',
         'nav.promo.gold': 'Timeless Elegance',
