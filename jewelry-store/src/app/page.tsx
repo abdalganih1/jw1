@@ -1,8 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { products, testimonials, instagramPosts, categories } from '@/data/products';
+import { products as staticProducts, testimonials, instagramPosts } from '@/data/products';
+import { API_URL, mapApiProduct, ApiCategory, mapApiCategory } from '@/lib/api';
+import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -10,9 +13,33 @@ export default function Home() {
   const { lang } = useLanguage();
   const t = (ar: string, en: string) => lang === 'en' ? en : ar;
 
-  const featuredProducts = products.filter(p => p.isFeatured).slice(0, 4);
-  const bestSellers = products.filter(p => p.isBestSeller).slice(0, 4);
-  const newProducts = products.filter(p => p.isNew).slice(0, 4);
+  const [products, setProducts] = useState<Product[]>(staticProducts);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`${API_URL}/products/`).then(res => res.json()).catch(() => []),
+      fetch(`${API_URL}/products/categories/`).then(res => res.json()).catch(() => []),
+    ]).then(([productsData, categoriesData]) => {
+      if (Array.isArray(productsData) && productsData.length > 0) {
+        setProducts(productsData.map(mapApiProduct));
+      }
+      if (Array.isArray(categoriesData) && categoriesData.length > 0) {
+        setCategories(categoriesData.map(mapApiCategory));
+      }
+    }).catch(() => {});
+  }, []);
+
+  const featuredProducts = products.slice(0, 4);
+  const bestSellers = products.length > 8 ? products.slice(4, 8) : products;
+  const newProducts = products.length > 8 ? products.slice(0, 4) : products;
+
+  const displayCategories = categories.length > 0 ? categories : [
+    { id: 'rings', name: 'Rings', nameAr: 'خواتم', icon: '💍' },
+    { id: 'necklaces', name: 'Necklaces', nameAr: 'قلادات', icon: '📿' },
+    { id: 'bracelets', name: 'Bracelets', nameAr: 'أساور', icon: '⌚' },
+    { id: 'earrings', name: 'Earrings', nameAr: 'أقراط', icon: '✨' }
+  ];
 
   return (
     <div className="min-h-screen" dir={lang === 'en' ? 'ltr' : 'rtl'}>
@@ -76,7 +103,7 @@ export default function Home() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
-            {categories.map((category) => (
+            {displayCategories.map((category) => (
               <Link
                 key={category.id}
                 href={`/shop?category=${category.id}`}

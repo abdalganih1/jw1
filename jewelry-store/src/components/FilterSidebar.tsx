@@ -1,6 +1,6 @@
 'use client';
 
-import { categories, metals, stones } from '@/data/products';
+import { categories as staticCategories, metals, stones } from '@/data/products';
 
 interface FilterSidebarProps {
   selectedCategory: string | null;
@@ -8,6 +8,7 @@ interface FilterSidebarProps {
   selectedStones: string[];
   priceRange: [number, number];
   sortBy: string;
+  categories?: any[];
   onCategoryChange: (category: string | null) => void;
   onMetalChange: (metal: string) => void;
   onStoneChange: (stone: string) => void;
@@ -22,6 +23,7 @@ export default function FilterSidebar({
   selectedStones,
   priceRange,
   sortBy,
+  categories: apiCategories,
   onCategoryChange,
   onMetalChange,
   onStoneChange,
@@ -29,6 +31,7 @@ export default function FilterSidebar({
   onSortChange,
   onClearFilters
 }: FilterSidebarProps) {
+  const categories = apiCategories && apiCategories.length > 0 ? apiCategories : staticCategories;
   const hasFilters = selectedCategory || selectedMetals.length > 0 || selectedStones.length > 0 || priceRange[0] > 0 || priceRange[1] < 15000;
 
   return (

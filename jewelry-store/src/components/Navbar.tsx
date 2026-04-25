@@ -121,6 +121,72 @@ const navCategories: Array<{
     },
   },
   {
+    id: 'silver',
+    label: 'فضة',
+    href: '/shop?material=silver',
+    megaMenu: {
+      columns: [
+        {
+          title: 'الفئات',
+          links: [
+            { label: 'خواتم فضة', href: '/shop?category=rings&material=silver' },
+            { label: 'أساور فضة', href: '/shop?category=bracelets&material=silver' },
+            { label: 'أقراط فضة', href: '/shop?category=earrings&material=silver' },
+            { label: 'قلادات فضة', href: '/shop?category=necklaces&material=silver' },
+          ],
+        },
+        {
+          title: 'تسوّقي حسب السعر',
+          links: [
+            { label: 'أقل من $200', href: '/shop?material=silver&maxPrice=200' },
+            { label: '$200 - $500', href: '/shop?material=silver&minPrice=200&maxPrice=500' },
+            { label: 'أكثر من $500', href: '/shop?material=silver&minPrice=500' },
+          ],
+        },
+      ],
+      promoImage: {
+        src: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=500&fit=crop',
+        alt: 'مجوهرات فضة',
+        label: 'فضة',
+        sublabel: 'جمال نقي',
+        href: '/shop?material=silver',
+      },
+    },
+  },
+  {
+    id: 'platinum',
+    label: 'بلاتين',
+    href: '/shop?material=platinum',
+    megaMenu: {
+      columns: [
+        {
+          title: 'الفئات',
+          links: [
+            { label: 'خواتم بلاتين', href: '/shop?category=rings&material=platinum' },
+            { label: 'أساور بلاتين', href: '/shop?category=bracelets&material=platinum' },
+            { label: 'أقراط بلاتين', href: '/shop?category=earrings&material=platinum' },
+            { label: 'قلادات بلاتين', href: '/shop?category=necklaces&material=platinum' },
+          ],
+        },
+        {
+          title: 'تسوّقي حسب السعر',
+          links: [
+            { label: 'أقل من $1,000', href: '/shop?material=platinum&maxPrice=1000' },
+            { label: '$1,000 - $5,000', href: '/shop?material=platinum&minPrice=1000&maxPrice=5000' },
+            { label: 'أكثر من $5,000', href: '/shop?material=platinum&minPrice=5000' },
+          ],
+        },
+      ],
+      promoImage: {
+        src: 'https://images.unsplash.com/photo-1608042314453-ae338d80c427?w=400&h=500&fit=crop',
+        alt: 'مجوهرات بلاتين',
+        label: 'بلاتين',
+        sublabel: 'فخامة مطلقة',
+        href: '/shop?material=platinum',
+      },
+    },
+  },
+  {
     id: 'modern',
     label: 'مجوهرات عصرية',
     href: '/shop?style=modern',

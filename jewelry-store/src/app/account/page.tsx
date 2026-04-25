@@ -4,7 +4,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { products } from '@/data/products';
+import { products as staticProducts } from '@/data/products';
+import { API_URL, mapApiProduct } from '@/lib/api';
+import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -23,7 +25,8 @@ function AccountContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || 'orders');
-  const [favorites] = useState(['1', '3', '9']);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>(staticProducts);
   const { user, token, isAuthenticated, isLoading, logout } = useAuth();
   const [designs, setDesigns] = useState<Array<{
     id: number;
@@ -44,6 +47,24 @@ function AccountContent() {
       router.push('/login');
     }
   }, [isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('favorites');
+    if (saved) {
+      try { setFavorites(JSON.parse(saved)); } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_URL}/products/`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setAllProducts(data.map(mapApiProduct));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('addresses');
@@ -133,7 +154,7 @@ function AccountContent() {
     }
   };
 
-  const favoriteProducts = products.filter(p => favorites.includes(p.id));
+  const favoriteProducts = allProducts.filter(p => favorites.includes(p.id));
 
   return (
     <div className="min-h-screen bg-[#faf9f7]">

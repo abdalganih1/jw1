@@ -7,9 +7,9 @@ export interface Product {
   price: number;
   originalPrice?: number;
   images: string[];
-  category: 'rings' | 'bracelets' | 'necklaces' | 'earrings';
-  metal: 'gold' | 'silver' | 'platinum' | 'rose-gold';
-  stone?: 'diamond' | 'ruby' | 'emerald' | 'sapphire' | 'pearl' | 'none';
+  category: string;
+  metal: string;
+  stone?: string;
   weight: number;
   isNew?: boolean;
   isBestSeller?: boolean;

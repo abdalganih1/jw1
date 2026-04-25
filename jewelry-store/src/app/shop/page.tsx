@@ -3,6 +3,7 @@
 import { useState, useMemo, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { products as mockProducts } from '@/data/products';
+import { API_URL, mapApiProduct, ApiCategory, mapApiCategory } from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
 import FilterSidebar from '@/components/FilterSidebar';
 import { ProductCardSkeleton } from '@/components/Skeleton';
@@ -31,42 +32,26 @@ function ShopContent() {
   const [sortBy, setSortBy] = useState(sortParam || 'popular');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [productsData, setProductsData] = useState<any[]>(mockProducts);
+  const [productsData, setProductsData] = useState<any[]>([]);
+  const [apiCategories, setApiCategories] = useState<any[]>([]);
 
   useEffect(() => {
     setIsLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/products/`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mappedProducts = data.map((p: any) => ({
-            id: String(p.id),
-            name: p.name,
-            nameAr: p.name,
-            description: p.description,
-            descriptionAr: p.description,
-            price: p.price,
-            originalPrice: p.price * 1.2,
-            category: p.categories && p.categories.length > 0 ? (p.categories[0].id === 1 ? 'rings' : p.categories[0].id === 2 ? 'necklaces' : 'bracelets') : 'rings',
-            metal: p.material?.toLowerCase() || 'gold',
-            stone: 'diamond',
-            karat: p.karat || '',
-            images: p.images && p.images.length > 0 ? p.images.map((img: any) => img.image_path) : ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'],
-            inStock: p.stock_quantity > 0,
-            rating: 5.0,
-            reviews: 0,
-            isNew: true,
-            isBestSeller: false,
-            sizes: ['6', '7', '8'],
-            weight: p.weight || 0
-          }));
-          setProductsData(mappedProducts);
-        }
-      })
-      .catch(err => {
-        console.error("Error fetching products:", err);
-      })
-      .finally(() => setIsLoading(false));
+    Promise.all([
+      fetch(`${API_URL}/products/`).then(res => res.json()).catch(() => []),
+      fetch(`${API_URL}/products/categories/`).then(res => res.json()).catch(() => []),
+    ]).then(([productsData, categoriesData]) => {
+      if (Array.isArray(productsData) && productsData.length > 0) {
+        setProductsData(productsData.map(mapApiProduct));
+      } else {
+        setProductsData(mockProducts);
+      }
+      if (Array.isArray(categoriesData)) {
+        setApiCategories(categoriesData.map(mapApiCategory));
+      }
+    }).catch(() => {
+      setProductsData(mockProducts);
+    }).finally(() => setIsLoading(false));
   }, []);
 
   const filteredProducts = useMemo(() => {
@@ -215,6 +200,7 @@ function ShopContent() {
                 selectedStones={selectedStones}
                 priceRange={priceRange}
                 sortBy={sortBy}
+                categories={apiCategories}
                 onCategoryChange={setSelectedCategory}
                 onMetalChange={handleMetalChange}
                 onStoneChange={handleStoneChange}

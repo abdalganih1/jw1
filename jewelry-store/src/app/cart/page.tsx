@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { products as mockProducts } from '@/data/products';
 import Toast from '@/components/Toast';
 
 export default function CartPage() {

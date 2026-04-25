@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { products, metals, stones } from '@/data/products';
+import { products as staticProducts, metals, stones } from '@/data/products';
+import { API_URL, mapApiProduct } from '@/lib/api';
+import { Product } from '@/types';
 import ImageGallery from '@/components/ImageGallery';
 import { EngravingModal } from '@/components/Modal';
 import Toast from '@/components/Toast';
@@ -12,16 +14,64 @@ import Toast from '@/components/Toast';
 export default function ProductPage() {
   const params = useParams();
   const productId = params.id as string;
-  const product = products.find(p => p.id === productId);
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>('');
-  const [selectedMetal, setSelectedMetal] = useState<string>(product?.metal || 'gold');
+  const [selectedMetal, setSelectedMetal] = useState<string>('gold');
   const [quantity, setQuantity] = useState(1);
   const [engraving, setEngraving] = useState('');
   const [giftWrap, setGiftWrap] = useState(false);
   const [isEngravingModalOpen, setIsEngravingModalOpen] = useState(false);
   const [toast, setToast] = useState({ isVisible: false, message: '' });
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetch(`${API_URL}/products/${productId}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (data) {
+          setProduct(mapApiProduct(data));
+          setSelectedMetal((data.material || 'gold').toLowerCase().replace(/\s+/g, '-'));
+        } else {
+          const fallback = staticProducts.find(p => p.id === productId);
+          setProduct(fallback || null);
+          if (fallback) setSelectedMetal(fallback.metal);
+        }
+      })
+      .catch(() => {
+        const fallback = staticProducts.find(p => p.id === productId);
+        setProduct(fallback || null);
+        if (fallback) setSelectedMetal(fallback.metal);
+      })
+      .finally(() => setIsLoading(false));
+  }, [productId]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/products/`)
+      .then(res => (res.ok ? res.json() : []))
+      .then(data => {
+        if (Array.isArray(data)) {
+          const all = data.map(mapApiProduct);
+          const related = all
+            .filter(p => p.category === product?.category && p.id !== product?.id)
+            .slice(0, 4);
+          setRelatedProducts(related);
+        }
+      })
+      .catch(() => {});
+  }, [product?.category, product?.id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -50,8 +100,6 @@ export default function ProductPage() {
     if (giftWrap) total += 50;
     return total;
   };
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
   const handleAddToCart = async () => {
     const token = localStorage.getItem('token');
@@ -95,9 +143,12 @@ export default function ProductPage() {
     setTimeout(() => setToast(t => ({ ...t, isVisible: false })), 3000);
   };
 
-  const relatedProducts = products
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const categoryNameAr = (cat: string) => {
+    const map: Record<string, string> = {
+      rings: 'خواتم', necklaces: 'قلادات', bracelets: 'أساور', earrings: 'أقراط',
+    };
+    return map[cat] || cat;
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -109,7 +160,7 @@ export default function ProductPage() {
             <li><Link href="/shop" className="hover:text-[#c9a962]">المتجر</Link></li>
             <li>/</li>
             <li><Link href={`/shop?category=${product.category}`} className="hover:text-[#c9a962]">
-              {product.category === 'rings' ? 'خواتم' : product.category === 'necklaces' ? 'قلادات' : product.category === 'bracelets' ? 'أساور' : 'أقراط'}
+              {categoryNameAr(product.category)}
             </Link></li>
             <li>/</li>
             <li className="text-gray-900">{product.nameAr}</li>
@@ -304,12 +355,12 @@ export default function ProductPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">المعدن:</span>
-                  <span>{metals.find(m => m.id === product.metal)?.nameAr}</span>
+                  <span>{metals.find(m => m.id === product.metal)?.nameAr || product.metal}</span>
                 </div>
                 {product.stone && product.stone !== 'none' && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">الحجر:</span>
-                    <span>{stones.find(s => s.id === product.stone)?.nameAr}</span>
+                    <span>{stones.find(s => s.id === product.stone)?.nameAr || product.stone}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
