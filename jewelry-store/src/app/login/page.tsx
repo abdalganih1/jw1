@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -21,40 +21,14 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const urlEncodedData = new URLSearchParams();
-            urlEncodedData.append('username', formData.username);
-            urlEncodedData.append('password', formData.password);
-
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: urlEncodedData.toString()
-            });
-
-            if (!res.ok) {
-                throw new Error('بيانات الدخول غير صحيحة');
-            }
-
-            const data = await res.json();
-            localStorage.setItem('token', data.access_token);
-
-            const meRes = await fetch(`${API_URL}/auth/me`, {
-                headers: { Authorization: `Bearer ${data.access_token}` },
-            });
-            if (meRes.ok) {
-                const meData = await meRes.json();
-                if (meData.role === 'ADMIN') {
-                    router.push('/admin');
-                } else {
-                    router.push('/account');
-                }
+            const user = await login(formData.username, formData.password);
+            if (user?.role === 'ADMIN') {
+                router.push('/admin');
             } else {
-                router.push('/');
+                router.push('/account');
             }
-            router.refresh();
-
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى');
+        } catch {
+            setError('بيانات الدخول غير صحيحة');
         } finally {
             setLoading(false);
         }

@@ -18,9 +18,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   authError: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User | null>;
   logout: () => void;
-  fetchUser: () => Promise<void>;
+  fetchUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,13 +33,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const fetchUser = async () => {
+  const fetchUser = async (): Promise<User | null> => {
     const storedToken = localStorage.getItem('token');
     if (!storedToken) {
       setUser(null);
       setToken(null);
       setIsLoading(false);
-      return;
+      return null;
     }
     try {
       const res = await fetch(`${API_URL}/auth/me`, {
@@ -50,16 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data);
         setToken(storedToken);
         setAuthError(null);
+        return data;
       } else {
         localStorage.removeItem('token');
         setUser(null);
         setToken(null);
+        return null;
       }
     } catch {
       setAuthError('تعذر الاتصال بالخادم');
       localStorage.removeItem('token');
       setUser(null);
       setToken(null);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchUser();
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string): Promise<User | null> => {
     const formData = new URLSearchParams();
     formData.append('username', username);
     formData.append('password', password);
@@ -83,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const data = await res.json();
     localStorage.setItem('token', data.access_token);
     setToken(data.access_token);
-    await fetchUser();
+    return await fetchUser();
   };
 
   const logout = () => {
