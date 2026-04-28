@@ -109,7 +109,7 @@ export default function Home() {
                 className="group relative aspect-[3/4] rounded-lg overflow-hidden"
               >
                 <Image
-                  src={products.find(p => p.category === category.id)?.images[0] || ''}
+                  src={products.find(p => p.category === category.id)?.images[0] || '/placeholder.jpg'}
                   alt={lang === 'en' ? category.name : category.nameAr}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-110"
