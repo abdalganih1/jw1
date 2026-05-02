@@ -45,14 +45,11 @@ function ShopContent() {
     ]).then(([productsData, categoriesData]) => {
       if (Array.isArray(productsData) && productsData.length > 0) {
         setProductsData(productsData.map(mapApiProduct));
-      } else {
-        setProductsData(mockProducts);
       }
-      if (Array.isArray(categoriesData)) {
+      if (Array.isArray(categoriesData) && categoriesData.length > 0) {
         setApiCategories(categoriesData.map(mapApiCategory));
       }
     }).catch(() => {
-      setProductsData(mockProducts);
     }).finally(() => setIsLoading(false));
   }, []);
 

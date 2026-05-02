@@ -116,6 +116,8 @@ export default function AdminPage() {
   const [jewelerForm, setJewelerForm] = useState({ name: '', shop_name: '', email: '', phone: '', bio: '', address: '' });
   const [uploadingImage, setUploadingImage] = useState<number | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>(['']);
+  const [savingProduct, setSavingProduct] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
@@ -173,20 +175,24 @@ export default function AdminPage() {
       const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
       if (res.ok) {
         const savedProduct = await res.json();
-        
-        // Upload any selected files
-        if (selectedFiles.length > 0) {
-          const productId = editingProduct ? editingProduct.id : savedProduct.id;
-          for (const file of selectedFiles) {
-            await handleImageUpload(productId, file, false);
+        const productId = editingProduct ? editingProduct.id : savedProduct.id;
+
+        for (const file of selectedFiles) {
+          await handleImageUpload(productId, file, false);
+        }
+
+        for (const imageUrl of imageUrls) {
+          if (imageUrl.trim()) {
+            await handleAddImageUrl(productId, imageUrl.trim());
           }
         }
-        
+
         showSuccess(editingProduct ? 'تم تعديل المنتج بنجاح ✅' : 'تم إضافة المنتج بنجاح ✅');
-        setShowProductForm(false); 
-        setEditingProduct(null); 
+        setShowProductForm(false);
+        setEditingProduct(null);
         setProductForm(emptyProduct);
         setSelectedFiles([]);
+        setImageUrls([]);
         fetchData('products');
       } else {
         const e = await res.json(); alert(e.detail || 'خطأ');
@@ -211,6 +217,7 @@ export default function AdminPage() {
       color: p.color || 'Yellow', is_new: p.is_new ?? true, is_bestseller: p.is_bestseller || false, is_featured: p.is_featured || false,
     });
     setSelectedFiles([]);
+    setImageUrls([]);
     setShowProductForm(true);
   };
 
@@ -239,6 +246,16 @@ export default function AdminPage() {
         showSuccess('تم حذف الصورة ✅');
         fetchData('products');
       }
+    } catch {}
+  };
+
+  const handleAddImageUrl = async (productId: number, imageUrl: string) => {
+    try {
+      await fetch(`${API_URL}/admin/products/${productId}/add-image-url`, {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ image_url: imageUrl }),
+      });
     } catch {}
   };
 
@@ -424,7 +441,7 @@ export default function AdminPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold">المنتجات ({products.length})</h2>
-                  <button onClick={() => { setEditingProduct(null); setProductForm({ ...emptyProduct, jeweler_id: jewelers[0]?.id || 1 }); setShowProductForm(true); }}
+                  <button onClick={() => { setEditingProduct(null); setProductForm({ ...emptyProduct, jeweler_id: jewelers[0]?.id || 1 }); setImageUrls([]); setSelectedFiles([]); setShowProductForm(true); }}
                     className="px-4 py-2 bg-[#c9a962] text-white rounded-lg text-sm hover:bg-[#b8944f] transition-colors">
                     + إضافة منتج
                   </button>
@@ -505,44 +522,83 @@ export default function AdminPage() {
                             ))}
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">الرابط المباشر للصورة (اختياري)</label>
-                          <input value={productForm.image_path} onChange={(e) => setProductForm({ ...productForm, image_path: e.target.value })}
-                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" dir="ltr" placeholder="https://..." />
-                        </div>
+                        {/* ─── صور المنتج ─── */}
+                        <div className="border rounded-lg p-4 bg-gray-50/50 space-y-4">
+                          <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">🖼️ صور المنتج</h4>
 
-                        {/* Multiple Image Upload UI */}
-                        <div>
-                          <label className="block text-sm font-medium mb-1">صور إضافية (اختيار ملفات من الجهاز)</label>
-                          <input 
-                            type="file" 
-                            multiple 
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files) {
-                                setSelectedFiles(Array.from(e.target.files));
-                              }
-                            }}
-                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" 
-                          />
-                          {selectedFiles.length > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">تم اختيار {selectedFiles.length} صور (سيتم رفعها عند الحفظ)</p>
-                          )}
-                          
-                          {/* Show existing images when editing */}
+                          {/* الصورة الرئيسية */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">الصورة الرئيسية (رابط)</label>
+                            <div className="flex gap-2">
+                              <input value={productForm.image_path} onChange={(e) => setProductForm({ ...productForm, image_path: e.target.value })}
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" dir="ltr" placeholder="https://..." />
+                              {productForm.image_path && (
+                                <img src={productForm.image_path.startsWith('http') ? productForm.image_path : getImg(productForm.image_path)} alt="preview" className="w-10 h-10 rounded object-cover border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* روابط صور إضافية */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">روابط صور إضافية</label>
+                            <div className="space-y-2">
+                              {imageUrls.map((url, i) => (
+                                <div key={i} className="flex gap-2 items-center">
+                                  <input value={url} onChange={(e) => {
+                                    const newUrls = [...imageUrls];
+                                    newUrls[i] = e.target.value;
+                                    setImageUrls(newUrls);
+                                  }}
+                                    className="flex-1 px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]" dir="ltr" placeholder="https://..." />
+                                  {url && (
+                                    <img src={url} alt="" className="w-8 h-8 rounded object-cover border" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                  )}
+                                  <button type="button" onClick={() => setImageUrls(imageUrls.filter((_, idx) => idx !== i))}
+                                    className="text-red-400 hover:text-red-600 text-lg leading-none px-1">×</button>
+                                </div>
+                              ))}
+                              <button type="button" onClick={() => setImageUrls([...imageUrls, ''])}
+                                className="text-[#c9a962] text-xs font-medium hover:underline flex items-center gap-1">
+                                + إضافة رابط صورة
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* رفع ملفات من الجهاز */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 mb-1">رفع صور من الجهاز</label>
+                            <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer hover:border-[#c9a962] hover:bg-[#c9a962]/5 transition-colors">
+                              <svg className="w-8 h-8 text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                              <span className="text-xs text-gray-500">اضغط لاختيار صور أو اسحبها هنا</span>
+                              <input type="file" multiple accept="image/*" className="hidden" onChange={(e) => {
+                                const flist = e.target.files;
+                                if (flist) setSelectedFiles(prev => [...prev, ...Array.from(flist)]);
+                              }} />
+                            </label>
+                            {selectedFiles.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {selectedFiles.map((file, i) => (
+                                  <div key={i} className="relative group">
+                                    <img src={URL.createObjectURL(file)} alt="" className="w-14 h-14 rounded object-cover border" />
+                                    <button type="button" onClick={() => setSelectedFiles(selectedFiles.filter((_, idx) => idx !== i))}
+                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100">×</button>
+                                    <p className="text-[9px] text-gray-400 truncate w-14 text-center mt-0.5">{file.name}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* الصور الحالية (عند التعديل) */}
                           {editingProduct && editingProduct.images && editingProduct.images.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-xs text-gray-500 mb-2">الصور الحالية (اضغط ❌ للحذف):</p>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">الصور الحالية</label>
                               <div className="flex flex-wrap gap-2">
                                 {editingProduct.images.map((img) => (
-                                  <div key={img.id} className="relative group/img">
-                                    <img src={getImg(img.image_path)} className="w-12 h-12 rounded object-cover border" />
-                                    <button 
-                                      type="button"
-                                      onClick={(e) => { e.stopPropagation(); handleDeleteImage(img.id); }}
-                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors">
-                                      ×
-                                    </button>
+                                  <div key={img.id} className="relative group">
+                                    <img src={getImg(img.image_path)} alt="" className="w-14 h-14 rounded object-cover border" />
+                                    <button type="button" onClick={() => handleDeleteImage(img.id)}
+                                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition-colors">×</button>
                                   </div>
                                 ))}
                               </div>
@@ -570,7 +626,7 @@ export default function AdminPage() {
                           className="flex-1 py-2.5 bg-[#c9a962] text-white rounded-lg text-sm font-medium hover:bg-[#b8944f] transition-colors disabled:opacity-40">
                           {editingProduct ? 'حفظ التعديلات' : 'إضافة المنتج'}
                         </button>
-                        <button onClick={() => { setShowProductForm(false); setEditingProduct(null); setSelectedFiles([]); }} className="px-4 py-2.5 border rounded-lg text-sm text-gray-500 hover:bg-gray-50">إلغاء</button>
+                        <button onClick={() => { setShowProductForm(false); setEditingProduct(null); setSelectedFiles([]); setImageUrls([]); }} className="px-4 py-2.5 border rounded-lg text-sm text-gray-500 hover:bg-gray-50">إلغاء</button>
                       </div>
                     </div>
                   </div>
