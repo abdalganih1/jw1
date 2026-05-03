@@ -228,15 +228,13 @@ export default function BuilderPage() {
 
       setLoadingProgress(100);
       setLoadingMessage('تم الانتهاء من التصميم!');
-      setTimeout(() => {
-        setGeneratedImageUrl(imageUrl);
-        setGeneratedDesignId(data.id);
-        setGeneratedOptions(data.selected_options || payload);
-      }, 500);
+      setGeneratedImageUrl(imageUrl);
+      setGeneratedDesignId(data.id);
+      setGeneratedOptions(data.selected_options || payload);
+      setIsGenerating(false);
     } catch (e: unknown) {
       clearInterval(interval);
       setError(e instanceof Error ? e.message : 'حدث خطأ أثناء التوليد');
-    } finally {
       setIsGenerating(false);
     }
   };
@@ -264,16 +262,14 @@ export default function BuilderPage() {
         ? data.generated_image_url
         : `${API_URL.replace('/api', '')}${data.generated_image_url}`;
       setLoadingProgress(100);
-      setTimeout(() => {
-        setGeneratedImageUrl(imageUrl);
-        setGeneratedDesignId(data.id);
-        setGeneratedOptions(data.selected_options || generatedOptions);
-      }, 500);
+      setGeneratedImageUrl(imageUrl);
+      setGeneratedDesignId(data.id);
+      setGeneratedOptions(data.selected_options || generatedOptions);
+      setIsGenerating(false);
     } catch {
       clearInterval(interval);
-      handleGenerateDesign();
-    } finally {
       setIsGenerating(false);
+      handleGenerateDesign();
     }
   };
 
@@ -597,6 +593,7 @@ export default function BuilderPage() {
                     className="object-cover"
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     {...(generatedImageUrl ? { unoptimized: true } : {})}
+                    onError={(e) => console.error('[Builder] Preview image failed to load:', (e.target as HTMLImageElement).src)}
                   />
                   {!generatedImageUrl && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/10">

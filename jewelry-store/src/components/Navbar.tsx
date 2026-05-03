@@ -35,43 +35,43 @@ export default function Navbar() {
     {
       id: 'diamonds',
       label: t('nav.diamonds'),
-      href: '/shop?material=diamond',
+      href: '/shop?material=gold',
       megaMenu: {
         columns: [
           {
             title: t('nav.mega.categories'),
             links: [
-              { label: t('nav.mega.diamondRings'), href: '/shop?category=rings&material=diamond' },
-              { label: t('nav.mega.diamondBracelets'), href: '/shop?category=bracelets&material=diamond' },
-              { label: t('nav.mega.diamondEarrings'), href: '/shop?category=earrings&material=diamond' },
-              { label: t('nav.mega.diamondNecklaces'), href: '/shop?category=necklaces&material=diamond' },
-              { label: t('nav.mega.diamondSets'), href: '/shop?category=sets&material=diamond' },
+              { label: t('nav.mega.diamondRings'), href: '/shop?category=rings' },
+              { label: t('nav.mega.diamondBracelets'), href: '/shop?category=bracelets' },
+              { label: t('nav.mega.diamondEarrings'), href: '/shop?category=earrings' },
+              { label: t('nav.mega.diamondNecklaces'), href: '/shop?category=necklaces' },
+              { label: t('nav.mega.diamondSets'), href: '/shop?category=sets' },
             ],
           },
           {
             title: t('nav.mega.featured'),
             links: [
-              { label: t('nav.mega.bestSeller'), href: '/shop?material=diamond&sort=popular' },
-              { label: t('nav.mega.newArrivals'), href: '/shop?material=diamond&sort=new' },
-              { label: t('nav.mega.unique'), href: '/shop?material=diamond&unique=true' },
+              { label: t('nav.mega.bestSeller'), href: '/shop?material=gold&sort=popular' },
+              { label: t('nav.mega.newArrivals'), href: '/shop?material=gold&sort=new' },
+              { label: t('nav.mega.unique'), href: '/shop?material=gold' },
             ],
           },
           {
             title: t('nav.mega.metal'),
             links: [
-              { label: t('nav.mega.whiteGold'), href: '/shop?material=diamond&metal=white-gold' },
-              { label: t('nav.mega.yellowGold'), href: '/shop?material=diamond&metal=yellow-gold' },
-              { label: t('nav.mega.roseGold'), href: '/shop?material=diamond&metal=rose-gold' },
-              { label: t('nav.platinum'), href: '/shop?material=diamond&metal=platinum' },
+              { label: t('nav.mega.whiteGold'), href: '/shop?material=gold&metal=white-gold' },
+              { label: t('nav.mega.yellowGold'), href: '/shop?material=gold&metal=yellow-gold' },
+              { label: t('nav.mega.roseGold'), href: '/shop?material=gold&metal=rose-gold' },
+              { label: t('nav.platinum'), href: '/shop?material=gold&metal=platinum' },
             ],
           },
           {
             title: t('nav.mega.byPrice'),
             links: [
-              { label: t('nav.price.under1k'), href: '/shop?material=diamond&maxPrice=1000' },
-              { label: t('nav.price.1k5k'), href: '/shop?material=diamond&minPrice=1000&maxPrice=5000' },
-              { label: t('nav.price.5k15k'), href: '/shop?material=diamond&minPrice=5000&maxPrice=15000' },
-              { label: t('nav.price.over15k'), href: '/shop?material=diamond&minPrice=15000' },
+              { label: t('nav.price.under1k'), href: '/shop?material=gold&maxPrice=1000' },
+              { label: t('nav.price.1k5k'), href: '/shop?material=gold&minPrice=1000&maxPrice=5000' },
+              { label: t('nav.price.5k15k'), href: '/shop?material=gold&minPrice=5000&maxPrice=15000' },
+              { label: t('nav.price.over15k'), href: '/shop?material=gold&minPrice=15000' },
             ],
           },
         ],
@@ -80,7 +80,7 @@ export default function Navbar() {
           alt: t('nav.promoAlt.diamonds'),
           label: t('nav.diamonds'),
           sublabel: t('nav.promo.diamonds'),
-          href: '/shop?material=diamond',
+          href: '/shop?material=gold',
         },
       },
     },
@@ -238,79 +238,6 @@ export default function Navbar() {
       label: t('nav.labDiamonds'),
       href: '/shop?material=lab-diamond',
       megaMenu: null,
-    },
-    {
-      id: 'wedding',
-      label: t('nav.wedding'),
-      href: '/shop?occasion=wedding',
-      megaMenu: {
-        columns: [
-          {
-            title: t('nav.mega.engageRings'),
-            links: [
-              { label: t('nav.mega.solitaire'), href: '/shop?occasion=engagement&style=solitaire' },
-              { label: t('nav.mega.twins'), href: '/shop?occasion=engagement&style=twins' },
-              { label: t('nav.mega.halo'), href: '/shop?occasion=engagement&style=halo' },
-              { label: t('nav.mega.sideStone'), href: '/shop?occasion=engagement&style=side-stone' },
-            ],
-          },
-          {
-            title: t('nav.mega.weddingRings'),
-            links: [
-              { label: t('nav.mega.whiteGold'), href: '/shop?occasion=wedding&metal=white-gold' },
-              { label: t('nav.mega.yellowGold'), href: '/shop?occasion=wedding&metal=yellow-gold' },
-              { label: t('nav.platinum'), href: '/shop?occasion=wedding&metal=platinum' },
-            ],
-          },
-          {
-            title: t('nav.mega.weddingSets'),
-            links: [
-              { label: t('nav.mega.weddingSetsLabel'), href: '/shop?occasion=wedding&category=sets' },
-              { label: t('nav.mega.forCouple'), href: '/shop?occasion=wedding&forBoth=true' },
-            ],
-          },
-        ],
-        promoImage: {
-          src: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=500&fit=crop',
-          alt: t('nav.promoAlt.wedding'),
-          label: t('nav.wedding'),
-          sublabel: t('nav.promo.wedding'),
-          href: '/shop?occasion=wedding',
-        },
-      },
-    },
-    {
-      id: 'gifts',
-      label: t('nav.gifts'),
-      href: '/shop?occasion=gifts',
-      megaMenu: {
-        columns: [
-          {
-            title: t('nav.mega.occasions'),
-            links: [
-              { label: t('nav.mega.birthday'), href: '/shop?occasion=birthday' },
-              { label: t('nav.mega.mothersDay'), href: '/shop?occasion=mothers-day' },
-              { label: t('nav.mega.graduation'), href: '/shop?occasion=graduation' },
-              { label: t('nav.mega.valentines'), href: '/shop?occasion=valentines' },
-            ],
-          },
-          {
-            title: t('nav.mega.byBudget'),
-            links: [
-              { label: t('nav.price.under300'), href: '/shop?occasion=gifts&maxPrice=300' },
-              { label: t('nav.price.3001k'), href: '/shop?occasion=gifts&minPrice=300&maxPrice=1000' },
-              { label: t('nav.price.over1k'), href: '/shop?occasion=gifts&minPrice=1000' },
-            ],
-          },
-        ],
-        promoImage: {
-          src: 'https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?w=400&h=500&fit=crop',
-          alt: t('nav.promoAlt.gifts'),
-          label: t('nav.gifts'),
-          sublabel: t('nav.promo.gifts'),
-          href: '/shop?occasion=gifts',
-        },
-      },
     },
     {
       id: 'all',
@@ -527,7 +454,7 @@ export default function Navbar() {
             </div>
 
             {/* اسم العلامة - يمين */}
-            <Link href="/" className="flex items-center gap-1.5">
+            <Link href="/" className="flex items-center gap-1.5" style={{ direction: 'ltr' }}>
               <span className="font-light tracking-[0.25em] text-[10px] uppercase" style={{ color: '#110d15' }}>Vivelt</span>
               <span className="font-bold tracking-[0.2em] text-[10px] uppercase" style={{ color: '#110d15' }}>Gold</span>
             </Link>

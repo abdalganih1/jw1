@@ -99,7 +99,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   // حل الصور: تأكد من تمريرها عبر resolveImageUrl
   const productImage = resolveImageUrl(product.images[0] || '');
-  const productImageHover = product.images.length > 1 ? resolveImageUrl(product.images[1]) : productImage;
+  const productImageHover = resolveImageUrl(product.images.length > 1 ? product.images[1] : product.images[0]);
 
   return (
     <div

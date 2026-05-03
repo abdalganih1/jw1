@@ -21,7 +21,7 @@ export default function AIResultPanel({
 
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = imageUrl;
+    link.href = fullUrl;
     link.download = `jewelry-design-${designId}.jpg`;
     link.target = '_blank';
     link.click();
@@ -39,6 +39,7 @@ export default function AIResultPanel({
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 50vw"
           unoptimized
+          onError={(e) => console.error('[AIResultPanel] Image failed to load:', fullUrl, e)}
         />
         <div className="absolute top-3 left-3 bg-[#c9a962] text-white text-xs px-3 py-1 rounded-full font-medium">
           AI Design #{designId}

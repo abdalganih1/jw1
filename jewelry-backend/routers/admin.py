@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from typing import List, Optional
+import os, uuid
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
-from typing import List
 from database import get_db
 from models import (
     User,
@@ -143,6 +144,10 @@ def update_design_request_status(
     return {"message": "Design request status updated", "status": dr.status.value}
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @router.post("/products", response_model=ProductResponse)
 def create_product(
     product: ProductCreate,
@@ -150,32 +155,51 @@ def create_product(
     db: Session = Depends(get_db),
 ):
     check_admin(current_user)
-    new_product = Product(
-        jeweler_id=product.jeweler_id,
-        name=product.name,
-        material=product.material,
-        karat=product.karat,
-        weight=product.weight,
-        price=product.price,
-        stock_quantity=product.stock_quantity,
-        description=product.description,
-        image_path=product.image_path,
-        color=product.color,
-        is_new=product.is_new,
-        is_bestseller=product.is_bestseller,
-        is_featured=product.is_featured,
-    )
-    db.add(new_product)
+    
+    # Ensure jeweler_id is valid
+    jeweler_id = product.jeweler_id
+    jeweler = db.query(Jeweler).filter(Jeweler.id == jeweler_id).first()
+    if not jeweler:
+        logger.warning(f"Jeweler ID {jeweler_id} not found, attempting to find first available jeweler")
+        first_jeweler = db.query(Jeweler).first()
+        if not first_jeweler:
+            logger.error("No jewelers found in database")
+            raise HTTPException(status_code=400, detail="No jewelers found in database. Please create a jeweler first.")
+        jeweler_id = first_jeweler.id
+        logger.info(f"Assigned to jeweler ID {jeweler_id}")
 
-    if product.category_ids:
-        categories = (
-            db.query(Category).filter(Category.id.in_(product.category_ids)).all()
+    try:
+        new_product = Product(
+            jeweler_id=jeweler_id,
+            name=product.name,
+            material=product.material,
+            karat=product.karat,
+            weight=product.weight,
+            price=product.price,
+            stock_quantity=product.stock_quantity,
+            description=product.description,
+            image_path=product.image_path,
+            color=product.color,
+            is_new=product.is_new,
+            is_bestseller=product.is_bestseller,
+            is_featured=product.is_featured,
         )
-        new_product.categories = categories
+        db.add(new_product)
 
-    db.commit()
-    db.refresh(new_product)
-    return new_product
+        if product.category_ids:
+            categories = (
+                db.query(Category).filter(Category.id.in_(product.category_ids)).all()
+            )
+            new_product.categories = categories
+
+        db.commit()
+        db.refresh(new_product)
+        logger.info(f"Product created successfully: {new_product.id} - {new_product.name}")
+        return new_product
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error creating product: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating product: {str(e)}")
 
 
 @router.post("/categories", response_model=CategoryResponse)
@@ -240,17 +264,28 @@ def update_product(
     check_admin(current_user)
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
+        logger.error(f"Product not found for update: {product_id}")
         raise HTTPException(status_code=404, detail="Product not found")
-    update_data = body.model_dump(exclude_unset=True)
-    category_ids = update_data.pop("category_ids", None)
-    for field, value in update_data.items():
-        setattr(product, field, value)
-    if category_ids is not None:
-        categories = db.query(Category).filter(Category.id.in_(category_ids)).all()
-        product.categories = categories
-    db.commit()
-    db.refresh(product)
-    return product
+    
+    try:
+        update_data = body.model_dump(exclude_unset=True)
+        category_ids = update_data.pop("category_ids", None)
+        
+        for field, value in update_data.items():
+            setattr(product, field, value)
+            
+        if category_ids is not None:
+            categories = db.query(Category).filter(Category.id.in_(category_ids)).all()
+            product.categories = categories
+            
+        db.commit()
+        db.refresh(product)
+        logger.info(f"Product updated successfully: {product.id}")
+        return product
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating product {product_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error updating product: {str(e)}")
 
 
 @router.delete("/products/images/{image_id}")
@@ -377,3 +412,118 @@ def get_all_orders_detailed(
             }
         )
     return result
+
+
+class AddImageUrlBody(BaseModel):
+    image_url: str
+
+
+@router.post("/products/{product_id}/add-image-url")
+def admin_add_image_url(
+    product_id: int,
+    body: AddImageUrlBody,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    max_order = (
+        db.query(ProductImage)
+        .filter(ProductImage.product_id == product_id)
+        .order_by(ProductImage.display_order.desc())
+        .first()
+    )
+    next_order = (max_order.display_order + 1) if max_order else 0
+
+    if not product.image_path:
+        product.image_path = body.image_url
+
+    new_image = ProductImage(
+        product_id=product_id,
+        image_path=body.image_url,
+        display_order=next_order,
+    )
+    db.add(new_image)
+    db.commit()
+    db.refresh(new_image)
+    return {"id": new_image.id, "image_path": new_image.image_path}
+
+
+# ── Payment Method QR Code Management ──
+@router.get("/payment-methods")
+def list_payment_methods(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    return db.query(PaymentMethod).all()
+
+
+@router.put("/payment-methods/{method_id}")
+def update_payment_method(
+    method_id: int,
+    method_name: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    notes: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    pm = db.query(PaymentMethod).filter(PaymentMethod.id == method_id).first()
+    if not pm:
+        raise HTTPException(status_code=404, detail="Payment method not found")
+    if method_name is not None:
+        pm.method_name = method_name
+    if is_active is not None:
+        pm.is_active = is_active
+    if notes is not None:
+        pm.notes = notes
+    db.commit()
+    db.refresh(pm)
+    return pm
+
+
+@router.post("/payment-methods/{method_id}/upload-qr")
+def upload_payment_qr(
+    method_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    pm = db.query(PaymentMethod).filter(PaymentMethod.id == method_id).first()
+    if not pm:
+        raise HTTPException(status_code=404, detail="Payment method not found")
+    
+    save_dir = "static/qr_codes"
+    os.makedirs(save_dir, exist_ok=True)
+    filename = f"{uuid.uuid4()}.{file.filename.split('.')[-1]}"
+    filepath = os.path.join(save_dir, filename)
+    
+    with open(filepath, "wb") as f:
+        f.write(file.file.read())
+    
+    pm.qr_code_image = f"/static/qr_codes/{filename}"
+    db.commit()
+    db.refresh(pm)
+    return {"id": pm.id, "qr_code_image": pm.qr_code_image}
+
+
+# ── Transfer Receipt Upload (Customer) ──
+@router.post("/upload-receipt")
+def upload_transfer_receipt(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    save_dir = "static/receipts"
+    os.makedirs(save_dir, exist_ok=True)
+    filename = f"{uuid.uuid4()}.{file.filename.split('.')[-1]}"
+    filepath = os.path.join(save_dir, filename)
+    
+    with open(filepath, "wb") as f:
+        f.write(file.file.read())
+    
+    return {"receipt_path": f"/static/receipts/{filename}"}

@@ -36,3 +36,12 @@ Thumbs.db
 # Static generated
 jewelry-backend/static/generated_designs/
 jewelry-backend/.env
+
+# Uploaded product images (too many for git)
+jewelry-backend/static/product_images/
+jewelry-backend/static/qr_codes/
+jewelry-backend/static/receipts/
+
+# Temp scripts
+check_db.py
+check_jewelers.py

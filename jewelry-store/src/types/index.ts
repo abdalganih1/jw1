@@ -8,8 +8,10 @@ export interface Product {
   originalPrice?: number;
   images: string[];
   category: string;
+  categories?: string[];
   metal: string;
   color?: string;
+  karat?: string;
   stone?: string;
   weight: number;
   isNew?: boolean;

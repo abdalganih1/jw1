@@ -25,6 +25,7 @@ interface DetailedOrder {
   order_date: string;
   user: { id: number; username: string; email: string; first_name: string | null; last_name: string | null; phone: string | null } | null;
   payment_method: { id: number; method_name: string } | null;
+  transfer_receipt: string | null;
   items: Array<{ id: number; product_id: number; quantity: number; unit_price: number; subtotal: number; product: { id: number; name: string; price: number; image_path: string | null } | null }>;
 }
 
@@ -77,6 +78,7 @@ interface CategoryItem { id: number; name: string; }
 const tabs = [
   { id: 'stats', label: 'الإحصائيات', icon: '📊' },
   { id: 'orders', label: 'الطلبيات', icon: '📦' },
+  { id: 'payment', label: 'طرق الدفع', icon: '💳' },
   { id: 'products', label: 'المنتجات', icon: '🛍️' },
   { id: 'jewelers', label: 'الصائغين', icon: '🔨' },
   { id: 'designs', label: 'التصاميم', icon: '✨' },
@@ -101,6 +103,7 @@ export default function AdminPage() {
   // Data states
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<DetailedOrder[]>([]);
+  const [paymentMethodsData, setPaymentMethodsData] = useState<Array<{ id: number; method_name: string; qr_code_image: string | null; is_active: boolean; notes: string | null }>>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [jewelers, setJewelers] = useState<JewelerItem[]>([]);
   const [designs, setDesigns] = useState<DesignItem[]>([]);
@@ -151,6 +154,8 @@ export default function AdminPage() {
         if (jRes.ok) setJewelers(await jRes.json());
       } else if (tab === 'jewelers') {
         const r = await fetch(`${API_URL}/admin/jewelers`, { headers: h }); if (r.ok) setJewelers(await r.json());
+      } else if (tab === 'payment') {
+        const r = await fetch(`${API_URL}/admin/payment-methods`, { headers: h }); if (r.ok) setPaymentMethodsData(await r.json());
       } else if (tab === 'designs') {
         const r = await fetch(`${API_URL}/admin/designs`, { headers: h }); if (r.ok) setDesigns(await r.json());
       } else if (tab === 'users') {
@@ -226,14 +231,19 @@ export default function AdminPage() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      await fetch(`${API_URL}/products/${productId}/upload-image`, {
+      const res = await fetch(`${API_URL}/admin/products/${productId}/upload-image`, {
         method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: formData,
       });
-      if (fetchAfter) {
-        showSuccess('تم رفع الصورة ✅');
-        fetchData('products');
+      if (res.ok) {
+        if (fetchAfter) {
+          showSuccess('تم رفع الصورة ✅');
+          fetchData('products');
+        }
+      } else {
+        const e = await res.json().catch(() => ({}));
+        alert(e.detail || 'فشل رفع الصورة');
       }
-    } catch {} finally { setUploadingImage(null); }
+    } catch { alert('خطأ بالاتصال أثناء رفع الصورة'); } finally { setUploadingImage(null); }
   };
 
   const handleDeleteImage = async (imageId: number) => {
@@ -245,8 +255,14 @@ export default function AdminPage() {
       if (res.ok) {
         showSuccess('تم حذف الصورة ✅');
         fetchData('products');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert('فشل حذف الصورة: ' + (errData.detail || res.statusText));
       }
-    } catch {}
+    } catch (err) {
+      alert('خطأ بالاتصال أثناء حذف الصورة');
+      console.error('Delete image error:', err);
+    }
   };
 
   const handleAddImageUrl = async (productId: number, imageUrl: string) => {
@@ -412,6 +428,30 @@ export default function AdminPage() {
                         {order.user?.phone && (
                           <div><p className="text-xs font-medium text-gray-500 mb-1">📞 هاتف الزبون</p><p className="text-sm" dir="ltr">{order.user.phone}</p></div>
                         )}
+                        {order.transfer_receipt && (
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 mb-1">🧾 وصل الحوالة</p>
+                            <a
+                              href={order.transfer_receipt.startsWith('http') ? order.transfer_receipt : `${API_URL.replace('/api', '')}${order.transfer_receipt}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block"
+                            >
+                              {order.transfer_receipt.toLowerCase().endsWith('.pdf') ? (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-red-50 rounded-lg border border-red-200">
+                                  <span className="text-red-500">📄</span>
+                                  <span className="text-sm text-red-700">عرض وصل PDF</span>
+                                </div>
+                              ) : (
+                                <img
+                                  src={order.transfer_receipt.startsWith('http') ? order.transfer_receipt : `${API_URL.replace('/api', '')}${order.transfer_receipt}`}
+                                  alt="وصل الحوالة"
+                                  className="max-w-xs max-h-48 rounded-lg border shadow-sm"
+                                />
+                              )}
+                            </a>
+                          </div>
+                        )}
                         <div>
                           <p className="text-xs font-medium text-gray-500 mb-2">🛒 المنتجات المطلوبة</p>
                           <div className="space-y-2">
@@ -433,6 +473,78 @@ export default function AdminPage() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* ━━━ PAYMENT METHODS TAB ━━━ */}
+            {!loading && activeTab === 'payment' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">💳 طرق الدفع</h2>
+                </div>
+
+                <div className="grid gap-4">
+                  {paymentMethodsData.map((pm) => (
+                    <div key={pm.id} className="bg-white rounded-lg p-4 border flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{pm.method_name}</h3>
+                          <span className={`text-xs px-2 py-1 rounded ${pm.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {pm.is_active ? '✅ مفعّل' : '❌ معطّل'}
+                          </span>
+                          {pm.notes && <p className="text-xs text-gray-400 mt-1">{pm.notes}</p>}
+                        </div>
+                        {pm.qr_code_image && (
+                          <div className="w-24 h-24 rounded-lg overflow-hidden border">
+                            <img
+                              src={pm.qr_code_image.startsWith('http') ? pm.qr_code_image : `${API_URL.replace('/api', '')}${pm.qr_code_image}`}
+                              alt="QR"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={async () => {
+                            const input = document.createElement('input');
+                            input.type = 'file';
+                            input.accept = 'image/*';
+                            input.onchange = async (e: any) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append('file', file);
+                              const res = await fetch(`${API_URL}/admin/payment-methods/${pm.id}/upload-qr`, {
+                                method: 'POST',
+                                headers: { Authorization: `Bearer ${token}` },
+                                body: fd,
+                              });
+                              if (res.ok) fetchData('payment');
+                              else alert('فشل الرفع');
+                            };
+                            input.click();
+                          }}
+                          className="px-3 py-1.5 text-xs bg-[#c9a962] text-white rounded-lg hover:bg-[#b8944f]"
+                        >
+                          📷 رفع QR
+                        </button>
+                        <button
+                          onClick={async () => {
+                            await fetch(`${API_URL}/admin/payment-methods/${pm.id}?is_active=${!pm.is_active}`, {
+                              method: 'PUT',
+                              headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            });
+                            fetchData('payment');
+                          }}
+                          className={`px-3 py-1.5 text-xs rounded-lg ${pm.is_active ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                        >
+                          {pm.is_active ? '⏸️ تعطيل' : '▶️ تفعيل'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

@@ -257,3 +257,41 @@ def toggle_favorite(
     design.is_favorite = not design.is_favorite
     db.commit()
     return {"is_favorite": design.is_favorite}
+
+
+@router.post("/generate-product-image")
+def generate_product_image(
+    prompt: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Generate a product image using Gemini AI based on a text prompt."""
+    from routers.auth import get_current_user
+    if not client:
+        raise HTTPException(status_code=500, detail="Gemini API Key is not configured")
+
+    full_prompt = (
+        f"Professional jewelry product photography. {prompt}. "
+        f"Setting: Professional studio lighting, pure white background, 8K ultra-high resolution, "
+        f"photorealistic rendering, highly reflective surfaces, commercial product photography, "
+        f"luxury brand aesthetic, centered composition."
+    )
+
+    try:
+        image_bytes, model_used = _generate_image(full_prompt)
+
+        filename = f"{uuid.uuid4()}.jpg"
+        save_dir = "static/product_images"
+        os.makedirs(save_dir, exist_ok=True)
+        filepath = os.path.join(save_dir, filename)
+
+        with open(filepath, "wb") as f:
+            f.write(image_bytes)
+
+        image_url = f"/static/product_images/{filename}"
+        return {"image_url": image_url, "model_used": model_used}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

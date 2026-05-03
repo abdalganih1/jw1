@@ -43,13 +43,14 @@ function ShopContent() {
       fetch(`${API_URL}/products/`).then(res => res.json()).catch(() => []),
       fetch(`${API_URL}/products/categories/`).then(res => res.json()).catch(() => []),
     ]).then(([productsData, categoriesData]) => {
-      if (Array.isArray(productsData) && productsData.length > 0) {
+      if (Array.isArray(productsData)) {
         setProductsData(productsData.map(mapApiProduct));
       }
-      if (Array.isArray(categoriesData) && categoriesData.length > 0) {
+      if (Array.isArray(categoriesData)) {
         setApiCategories(categoriesData.map(mapApiCategory));
       }
-    }).catch(() => {
+    }).catch((err) => {
+      console.error("Fetch error:", err);
     }).finally(() => setIsLoading(false));
   }, []);
 
@@ -57,11 +58,15 @@ function ShopContent() {
     let result = [...productsData];
 
     if (selectedCategory) {
-      result = result.filter(p => p.category === selectedCategory);
+      const targetCat = selectedCategory.toLowerCase();
+      result = result.filter(p => 
+        (p.categories && p.categories.includes(targetCat)) || 
+        p.category === targetCat
+      );
     }
 
     if (selectedMetals.length > 0) {
-      result = result.filter(p => selectedMetals.includes(p.metal));
+      result = result.filter(p => selectedMetals.some(m => p.metal.includes(m) || m.includes(p.metal)));
     }
 
     if (selectedStones.length > 0) {
