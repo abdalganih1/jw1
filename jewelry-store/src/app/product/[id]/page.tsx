@@ -267,7 +267,7 @@ export default function ProductPage() {
                           : 'border-gray-200 hover:border-[#c9a962] text-gray-700'
                         }`}
                     >
-                      {metal.nameAr}
+                      {lang === 'en' ? metal.name : metal.nameAr}
                     </button>
                   ))}
                 </div>
@@ -372,12 +372,12 @@ export default function ProductPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">{t('product.metal')}:</span>
-                  <span>{metals.find(m => m.id === product.metal)?.nameAr || product.metal}</span>
+                  <span>{metals.find(m => m.id === product.metal) ? (lang === 'en' ? metals.find(m => m.id === product.metal)!.name : metals.find(m => m.id === product.metal)!.nameAr) : product.metal}</span>
                 </div>
                 {product.stone && product.stone !== 'none' && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">{t('product.stone')}:</span>
-                    <span>{stones.find(s => s.id === product.stone)?.nameAr || product.stone}</span>
+                    <span>{stones.find(s => s.id === product.stone) ? (lang === 'en' ? stones.find(s => s.id === product.stone)!.name : stones.find(s => s.id === product.stone)!.nameAr) : product.stone}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
