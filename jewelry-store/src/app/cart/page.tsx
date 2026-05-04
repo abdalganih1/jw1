@@ -165,7 +165,7 @@ export default function CartPage() {
                     <div className="flex-1 text-right">
                       <Link href={`/product/${product.id}`}>
                         <h3 className="font-semibold text-gray-900 hover:text-[#c9a962] transition-colors">
-                          {product.nameAr || product.name}
+                          {lang === 'en' ? (product.name || product.nameAr) : (product.nameAr || product.name)}
                         </h3>
                       </Link>
                       <p className="text-sm text-gray-500 mt-1">

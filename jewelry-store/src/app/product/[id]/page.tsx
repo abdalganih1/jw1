@@ -172,7 +172,7 @@ export default function ProductPage() {
               {categoryNameAr(product.category)}
             </Link></li>
             <li>/</li>
-            <li className="text-gray-900">{product.nameAr}</li>
+            <li className="text-gray-900">{lang === 'en' ? (product.name || product.nameAr) : product.nameAr}</li>
           </ol>
         </nav>
 
@@ -200,9 +200,9 @@ export default function ProductPage() {
             </div>
 
             <h1 className="text-3xl font-display font-bold text-gray-900 mb-2">
-              {product.nameAr}
+              {lang === 'en' ? (product.name || product.nameAr) : product.nameAr}
             </h1>
-            <p className="text-gray-500 text-sm mb-4">{product.name}</p>
+            <p className="text-gray-500 text-sm mb-4">{lang === 'en' ? '' : product.name}</p>
 
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center gap-1">
@@ -231,7 +231,7 @@ export default function ProductPage() {
             </div>
 
             <p className="text-gray-600 leading-relaxed mb-6">
-              {product.descriptionAr}
+              {lang === 'en' ? (product.description || product.descriptionAr) : product.descriptionAr}
             </p>
 
             <div className="space-y-6 mb-8">
@@ -414,7 +414,7 @@ export default function ProductPage() {
                   </div>
                   <div className="p-4 text-right">
                     <h3 className="font-semibold text-gray-900 group-hover:text-[#c9a962] transition-colors">
-                      {p.nameAr}
+                      {lang === 'en' ? (p.name || p.nameAr) : p.nameAr}
                     </h3>
                     <p className="text-[#c9a962] font-medium mt-1">{formatPrice(p.price)}</p>
                   </div>

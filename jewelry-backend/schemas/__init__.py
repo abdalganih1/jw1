@@ -100,13 +100,17 @@ class ProductImageResponse(ProductImageBase):
 # --- Product Schemas ---
 class ProductBase(BaseModel):
     name: str
+    name_en: Optional[str] = None
     material: Optional[str] = None
+    material_en: Optional[str] = None
     color: Optional[str] = None
+    color_en: Optional[str] = None
     karat: Optional[str] = None
     weight: Optional[float] = None
     price: float
     stock_quantity: Optional[int] = 0
     description: Optional[str] = None
+    description_en: Optional[str] = None
     image_path: Optional[str] = None
     is_new: Optional[bool] = True
     is_bestseller: Optional[bool] = False
@@ -119,13 +123,17 @@ class ProductCreate(ProductBase):
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
+    name_en: Optional[str] = None
     material: Optional[str] = None
+    material_en: Optional[str] = None
     color: Optional[str] = None
+    color_en: Optional[str] = None
     karat: Optional[str] = None
     weight: Optional[float] = None
     price: Optional[float] = None
     stock_quantity: Optional[int] = None
     description: Optional[str] = None
+    description_en: Optional[str] = None
     image_path: Optional[str] = None
     is_new: Optional[bool] = None
     is_bestseller: Optional[bool] = None

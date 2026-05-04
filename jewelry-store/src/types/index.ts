@@ -10,7 +10,9 @@ export interface Product {
   category: string;
   categories?: string[];
   metal: string;
+  metalAr?: string;
   color?: string;
+  colorAr?: string;
   karat?: string;
   stone?: string;
   weight: number;

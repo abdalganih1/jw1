@@ -169,17 +169,25 @@ def create_product(
         logger.info(f"Assigned to jeweler ID {jeweler_id}")
 
     try:
+        # Auto-translate Arabic fields to English
+        from core.translator import translate_product_fields
+        translations = translate_product_fields(product.dict())
+
         new_product = Product(
             jeweler_id=jeweler_id,
             name=product.name,
+            name_en=product.name_en or translations.get("name_en"),
             material=product.material,
+            material_en=product.material_en or translations.get("material_en"),
             karat=product.karat,
             weight=product.weight,
             price=product.price,
             stock_quantity=product.stock_quantity,
             description=product.description,
+            description_en=product.description_en or translations.get("description_en"),
             image_path=product.image_path,
             color=product.color,
+            color_en=product.color_en or translations.get("color_en"),
             is_new=product.is_new,
             is_bestseller=product.is_bestseller,
             is_featured=product.is_featured,
@@ -270,6 +278,13 @@ def update_product(
     try:
         update_data = body.model_dump(exclude_unset=True)
         category_ids = update_data.pop("category_ids", None)
+        
+        # Auto-translate if Arabic fields changed but _en not provided
+        from core.translator import translate_product_fields
+        translations = translate_product_fields(update_data)
+        for k, v in translations.items():
+            if k not in update_data:
+                update_data[k] = v
         
         for field, value in update_data.items():
             setattr(product, field, value)
@@ -527,3 +542,44 @@ def upload_transfer_receipt(
         f.write(file.file.read())
     
     return {"receipt_path": f"/static/receipts/{filename}"}
+
+
+@router.post("/products/translate-all")
+def translate_all_products(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Translate all products that don't have English translations yet."""
+    check_admin(current_user)
+    from core.translator import translate_to_english
+    
+    products = db.query(Product).all()
+    translated = 0
+    errors = []
+    
+    for p in products:
+        try:
+            changed = False
+            if p.name and not p.name_en:
+                p.name_en = translate_to_english(p.name)
+                changed = True
+            if p.description and not p.description_en:
+                p.description_en = translate_to_english(p.description)
+                changed = True
+            if p.material and not p.material_en:
+                p.material_en = translate_to_english(p.material)
+                changed = True
+            if p.color and not p.color_en:
+                p.color_en = translate_to_english(p.color)
+                changed = True
+            if changed:
+                translated += 1
+        except Exception as e:
+            errors.append(f"Product {p.id}: {str(e)}")
+    
+    db.commit()
+    return {
+        "total": len(products),
+        "translated": translated,
+        "errors": errors,
+    }

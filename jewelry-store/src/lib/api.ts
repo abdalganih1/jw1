@@ -34,9 +34,9 @@ export function mapApiProduct(p: any): Product {
 
     return {
       id: String(p.id || Math.random()),
-      name: p.name || '',
+      name: p.name_en || p.name || '',
       nameAr: p.name || '',
-      description: p.description || '',
+      description: p.description_en || p.description || '',
       descriptionAr: p.description || '',
       price: Number(p.price) || 0,
       originalPrice: p.price ? Math.round(Number(p.price) * 1.2) : undefined,
@@ -44,7 +44,9 @@ export function mapApiProduct(p: any): Product {
       category: primaryCategory,
       categories: categories,
       metal,
-      color: p.color || undefined,
+      metalAr: p.material || '',
+      color: p.color_en || p.color || undefined,
+      colorAr: p.color || undefined,
       stone: 'none',
       weight: Number(p.weight) || 0,
       isNew: p.is_new !== undefined ? Boolean(p.is_new) : true,
@@ -61,7 +63,7 @@ export function mapApiProduct(p: any): Product {
     // Return a minimal valid product instead of failing
     return {
       id: String(p?.id || 'error'),
-      name: p?.name || 'Error loading product',
+      name: p?.name_en || p?.name || 'Error loading product',
       nameAr: p?.name || 'خطأ في تحميل المنتج',
       description: '', descriptionAr: '',
       price: 0, images: ['https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800'],
