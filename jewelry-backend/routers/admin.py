@@ -433,6 +433,52 @@ class AddImageUrlBody(BaseModel):
     image_url: str
 
 
+@router.post("/products/{product_id}/upload-image")
+def admin_upload_product_image(
+    product_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    check_admin(current_user)
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    upload_dir = os.path.join("static", "product_images")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = os.path.splitext(file.filename or "image.jpg")[1]
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(upload_dir, filename)
+
+    with open(filepath, "wb") as f:
+        content = file.file.read()
+        f.write(content)
+
+    max_order = (
+        db.query(ProductImage)
+        .filter(ProductImage.product_id == product_id)
+        .order_by(ProductImage.display_order.desc())
+        .first()
+    )
+    next_order = (max_order.display_order + 1) if max_order else 0
+
+    image_url = f"/static/product_images/{filename}"
+    if not product.image_path:
+        product.image_path = image_url
+
+    new_image = ProductImage(
+        product_id=product_id,
+        image_path=image_url,
+        display_order=next_order,
+    )
+    db.add(new_image)
+    db.commit()
+    db.refresh(new_image)
+    return {"id": new_image.id, "image_path": new_image.image_path}
+
+
 @router.post("/products/{product_id}/add-image-url")
 def admin_add_image_url(
     product_id: int,
