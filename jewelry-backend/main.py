@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LUXE Jewelry API", version="1.0.0")
+app = FastAPI(title="Vivelt Gold Jewelry API", version="1.0.0")
 
 # Enhanced ALLOWED_ORIGINS to include common dev ports and production domain
 default_origins = [
@@ -84,4 +84,4 @@ app.include_router(admin.router, prefix="/api")
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to LUXE Jewelry API"}
+    return {"message": "Welcome to Vivelt Gold Jewelry API"}

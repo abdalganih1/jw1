@@ -251,10 +251,10 @@ export const products: Product[] = [
 ];
 
 export const categories = [
-  { id: 'rings', name: 'Rings', nameAr: 'خواتم', icon: '💍' },
-  { id: 'necklaces', name: 'Necklaces', nameAr: 'قلادات', icon: '📿' },
-  { id: 'bracelets', name: 'Bracelets', nameAr: 'أساور', icon: '⌚' },
-  { id: 'earrings', name: 'Earrings', nameAr: 'أقراط', icon: '✨' }
+  { id: 'rings', name: 'Rings', nameAr: 'خواتم', icon: '' },
+  { id: 'necklaces', name: 'Necklaces', nameAr: 'قلادات', icon: '' },
+  { id: 'bracelets', name: 'Bracelets', nameAr: 'أساور', icon: '' },
+  { id: 'earrings', name: 'Earrings', nameAr: 'أقراط', icon: '' }
 ];
 
 export const metals = [

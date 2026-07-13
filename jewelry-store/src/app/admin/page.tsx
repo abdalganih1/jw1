@@ -575,7 +575,7 @@ export default function AdminPage() {
                             <label className="block text-sm font-medium mb-1">المادة</label>
                             <select value={productForm.material} onChange={(e) => setProductForm({ ...productForm, material: e.target.value })}
                               className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-[#c9a962]">
-                              <option value="Gold">ذهب</option><option value="Silver">فضة</option><option value="Platinum">بلاتين</option><option value="Rose Gold">ذهب وردي</option>
+                              <option value="Gold">ذهب</option><option value="Silver">فضة</option><option value="Platinum">بلاتين</option><option value="Rose Gold">ذهب وردي</option><option value="Diamond">ألماس</option>
                             </select>
                           </div>
                           <div>

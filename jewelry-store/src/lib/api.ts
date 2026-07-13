@@ -73,10 +73,10 @@ export function mapApiProduct(p: any): Product {
 }
 
 export const categoryIconMap: Record<string, string> = {
-  rings: '💍',
-  necklaces: '📿',
-  bracelets: '⌚',
-  earrings: '✨',
+  rings: '',
+  necklaces: '',
+  bracelets: '',
+  earrings: '',
 };
 
 export const categoryNameArMap: Record<string, string> = {

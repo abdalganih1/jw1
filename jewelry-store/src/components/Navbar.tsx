@@ -35,43 +35,42 @@ export default function Navbar() {
     {
       id: 'diamonds',
       label: t('nav.diamonds'),
-      href: '/shop?material=gold',
+      href: '/shop?search=ألماس',
       megaMenu: {
         columns: [
           {
             title: t('nav.mega.categories'),
             links: [
-              { label: t('nav.mega.diamondRings'), href: '/shop?category=rings' },
-              { label: t('nav.mega.diamondBracelets'), href: '/shop?category=bracelets' },
-              { label: t('nav.mega.diamondEarrings'), href: '/shop?category=earrings' },
-              { label: t('nav.mega.diamondNecklaces'), href: '/shop?category=necklaces' },
-              { label: t('nav.mega.diamondSets'), href: '/shop?category=sets' },
+              { label: t('nav.mega.diamondRings'), href: '/shop?search=ألماس&category=rings' },
+              { label: t('nav.mega.diamondBracelets'), href: '/shop?search=ألماس&category=bracelets' },
+              { label: t('nav.mega.diamondEarrings'), href: '/shop?search=ألماس&category=earrings' },
+              { label: t('nav.mega.diamondNecklaces'), href: '/shop?search=ألماس&category=necklaces' },
             ],
           },
           {
             title: t('nav.mega.featured'),
             links: [
-              { label: t('nav.mega.bestSeller'), href: '/shop?material=gold&sort=popular' },
-              { label: t('nav.mega.newArrivals'), href: '/shop?material=gold&sort=new' },
-              { label: t('nav.mega.unique'), href: '/shop?material=gold' },
+              { label: t('nav.mega.bestSeller'), href: '/shop?search=ألماس&sort=popular' },
+              { label: t('nav.mega.newArrivals'), href: '/shop?search=ألماس&sort=new' },
+              { label: t('nav.mega.unique'), href: '/shop?search=ألماس' },
             ],
           },
           {
             title: t('nav.mega.metal'),
             links: [
-              { label: t('nav.mega.whiteGold'), href: '/shop?material=gold&metal=white-gold' },
-              { label: t('nav.mega.yellowGold'), href: '/shop?material=gold&metal=yellow-gold' },
-              { label: t('nav.mega.roseGold'), href: '/shop?material=gold&metal=rose-gold' },
-              { label: t('nav.platinum'), href: '/shop?material=gold&metal=platinum' },
+              { label: t('nav.mega.whiteGold'), href: '/shop?search=ألماس+أبيض' },
+              { label: t('nav.mega.yellowGold'), href: '/shop?search=ألماس+أصفر' },
+              { label: t('nav.mega.roseGold'), href: '/shop?search=ألماس+وردي' },
+              { label: t('nav.platinum'), href: '/shop?search=ألماس+بلاتين' },
             ],
           },
           {
             title: t('nav.mega.byPrice'),
             links: [
-              { label: t('nav.price.under1k'), href: '/shop?material=gold&maxPrice=1000' },
-              { label: t('nav.price.1k5k'), href: '/shop?material=gold&minPrice=1000&maxPrice=5000' },
-              { label: t('nav.price.5k15k'), href: '/shop?material=gold&minPrice=5000&maxPrice=15000' },
-              { label: t('nav.price.over15k'), href: '/shop?material=gold&minPrice=15000' },
+              { label: t('nav.price.under1k'), href: '/shop?search=ألماس&maxPrice=1000' },
+              { label: t('nav.price.1k5k'), href: '/shop?search=ألماس&minPrice=1000&maxPrice=5000' },
+              { label: t('nav.price.5k15k'), href: '/shop?search=ألماس&minPrice=5000&maxPrice=15000' },
+              { label: t('nav.price.over15k'), href: '/shop?search=ألماس&minPrice=15000' },
             ],
           },
         ],
@@ -80,48 +79,48 @@ export default function Navbar() {
           alt: t('nav.promoAlt.diamonds'),
           label: t('nav.diamonds'),
           sublabel: t('nav.promo.diamonds'),
-          href: '/shop?material=gold',
+          href: '/shop?search=ألماس',
         },
       },
     },
     {
       id: 'gold',
       label: t('nav.gold'),
-      href: '/shop?material=gold',
+      href: '/shop?search=ذهب',
       megaMenu: {
         columns: [
           {
             title: t('nav.mega.categories'),
             links: [
-              { label: t('nav.mega.goldRings'), href: '/shop?category=rings&material=gold' },
-              { label: t('nav.mega.goldBracelets'), href: '/shop?category=bracelets&material=gold' },
-              { label: t('nav.mega.goldEarrings'), href: '/shop?category=earrings&material=gold' },
-              { label: t('nav.mega.goldNecklaces'), href: '/shop?category=necklaces&material=gold' },
-              { label: t('nav.mega.goldBars'), href: '/shop?category=bullion&material=gold' },
+              { label: t('nav.mega.goldRings'), href: '/shop?search=ذهب&category=rings' },
+              { label: t('nav.mega.goldBracelets'), href: '/shop?search=ذهب&category=bracelets' },
+              { label: t('nav.mega.goldEarrings'), href: '/shop?search=ذهب&category=earrings' },
+              { label: t('nav.mega.goldNecklaces'), href: '/shop?search=ذهب&category=necklaces' },
+              { label: t('nav.mega.goldBars'), href: '/shop?search=سبائك+ذهب' },
             ],
           },
           {
             title: t('nav.mega.karat'),
             links: [
-              { label: t('nav.mega.karat18'), href: '/shop?material=gold&karat=18' },
-              { label: t('nav.mega.karat21'), href: '/shop?material=gold&karat=21' },
-              { label: t('nav.mega.karat24'), href: '/shop?material=gold&karat=24' },
+              { label: t('nav.mega.karat18'), href: '/shop?search=ذهب&karat=18' },
+              { label: t('nav.mega.karat21'), href: '/shop?search=ذهب&karat=21' },
+              { label: t('nav.mega.karat24'), href: '/shop?search=ذهب&karat=24' },
             ],
           },
           {
             title: t('nav.mega.color'),
             links: [
-              { label: t('nav.mega.yellowGold'), href: '/shop?material=gold&color=yellow' },
-              { label: t('nav.mega.whiteGold'), href: '/shop?material=gold&color=white' },
-              { label: t('nav.mega.roseGold'), href: '/shop?material=gold&color=rose' },
+              { label: t('nav.mega.yellowGold'), href: '/shop?search=ذهب+أصفر' },
+              { label: t('nav.mega.whiteGold'), href: '/shop?search=ذهب+أبيض' },
+              { label: t('nav.mega.roseGold'), href: '/shop?search=ذهب+وردي' },
             ],
           },
           {
             title: t('nav.mega.byPrice'),
             links: [
-              { label: t('nav.price.under500'), href: '/shop?material=gold&maxPrice=500' },
-              { label: t('nav.price.5002k'), href: '/shop?material=gold&minPrice=500&maxPrice=2000' },
-              { label: t('nav.price.over2k'), href: '/shop?material=gold&minPrice=2000' },
+              { label: t('nav.price.under500'), href: '/shop?search=ذهب&maxPrice=500' },
+              { label: t('nav.price.5002k'), href: '/shop?search=ذهب&minPrice=500&maxPrice=2000' },
+              { label: t('nav.price.over2k'), href: '/shop?search=ذهب&minPrice=2000' },
             ],
           },
         ],
@@ -130,31 +129,31 @@ export default function Navbar() {
           alt: t('nav.promoAlt.gold'),
           label: t('nav.gold'),
           sublabel: t('nav.promo.gold'),
-          href: '/shop?material=gold',
+          href: '/shop?search=ذهب',
         },
       },
     },
     {
       id: 'silver',
       label: t('nav.silver'),
-      href: '/shop?material=silver',
+      href: '/shop?search=فضة',
       megaMenu: {
         columns: [
           {
             title: t('nav.mega.categories'),
             links: [
-              { label: t('nav.mega.silverRings'), href: '/shop?category=rings&material=silver' },
-              { label: t('nav.mega.silverBracelets'), href: '/shop?category=bracelets&material=silver' },
-              { label: t('nav.mega.silverEarrings'), href: '/shop?category=earrings&material=silver' },
-              { label: t('nav.mega.silverNecklaces'), href: '/shop?category=necklaces&material=silver' },
+              { label: t('nav.mega.silverRings'), href: '/shop?search=فضة&category=rings' },
+              { label: t('nav.mega.silverBracelets'), href: '/shop?search=فضة&category=bracelets' },
+              { label: t('nav.mega.silverEarrings'), href: '/shop?search=فضة&category=earrings' },
+              { label: t('nav.mega.silverNecklaces'), href: '/shop?search=فضة&category=necklaces' },
             ],
           },
           {
             title: t('nav.mega.byPrice'),
             links: [
-              { label: t('nav.price.under200'), href: '/shop?material=silver&maxPrice=200' },
-              { label: t('nav.price.200500'), href: '/shop?material=silver&minPrice=200&maxPrice=500' },
-              { label: t('nav.price.over500'), href: '/shop?material=silver&minPrice=500' },
+              { label: t('nav.price.under200'), href: '/shop?search=فضة&maxPrice=200' },
+              { label: t('nav.price.200500'), href: '/shop?search=فضة&minPrice=200&maxPrice=500' },
+              { label: t('nav.price.over500'), href: '/shop?search=فضة&minPrice=500' },
             ],
           },
         ],
@@ -163,31 +162,31 @@ export default function Navbar() {
           alt: t('nav.promoAlt.silver'),
           label: t('nav.silver'),
           sublabel: t('nav.promo.silver'),
-          href: '/shop?material=silver',
+          href: '/shop?search=فضة',
         },
       },
     },
     {
       id: 'platinum',
       label: t('nav.platinum'),
-      href: '/shop?material=platinum',
+      href: '/shop?search=بلاتين',
       megaMenu: {
         columns: [
           {
             title: t('nav.mega.categories'),
             links: [
-              { label: t('nav.mega.platinumRings'), href: '/shop?category=rings&material=platinum' },
-              { label: t('nav.mega.platinumBracelets'), href: '/shop?category=bracelets&material=platinum' },
-              { label: t('nav.mega.platinumEarrings'), href: '/shop?category=earrings&material=platinum' },
-              { label: t('nav.mega.platinumNecklaces'), href: '/shop?category=necklaces&material=platinum' },
+              { label: t('nav.mega.platinumRings'), href: '/shop?search=بلاتين&category=rings' },
+              { label: t('nav.mega.platinumBracelets'), href: '/shop?search=بلاتين&category=bracelets' },
+              { label: t('nav.mega.platinumEarrings'), href: '/shop?search=بلاتين&category=earrings' },
+              { label: t('nav.mega.platinumNecklaces'), href: '/shop?search=بلاتين&category=necklaces' },
             ],
           },
           {
             title: t('nav.mega.byPrice'),
             links: [
-              { label: t('nav.price.under1k'), href: '/shop?material=platinum&maxPrice=1000' },
-              { label: t('nav.price.1k5k'), href: '/shop?material=platinum&minPrice=1000&maxPrice=5000' },
-              { label: t('nav.price.over5k'), href: '/shop?material=platinum&minPrice=5000' },
+              { label: t('nav.price.under1k'), href: '/shop?search=بلاتين&maxPrice=1000' },
+              { label: t('nav.price.1k5k'), href: '/shop?search=بلاتين&minPrice=1000&maxPrice=5000' },
+              { label: t('nav.price.over5k'), href: '/shop?search=بلاتين&minPrice=5000' },
             ],
           },
         ],
@@ -196,48 +195,9 @@ export default function Navbar() {
           alt: t('nav.promoAlt.platinum'),
           label: t('nav.platinum'),
           sublabel: t('nav.promo.platinum'),
-          href: '/shop?material=platinum',
+          href: '/shop?search=بلاتين',
         },
       },
-    },
-    {
-      id: 'modern',
-      label: t('nav.modern'),
-      href: '/shop?style=modern',
-      megaMenu: {
-        columns: [
-          {
-            title: t('nav.mega.types'),
-            links: [
-              { label: t('nav.mega.modernRings'), href: '/shop?category=rings&style=modern' },
-              { label: t('nav.mega.modernBracelets'), href: '/shop?category=bracelets&style=modern' },
-              { label: t('nav.mega.modernEarrings'), href: '/shop?category=earrings&style=modern' },
-              { label: t('nav.mega.modernNecklaces'), href: '/shop?category=necklaces&style=modern' },
-            ],
-          },
-          {
-            title: t('nav.mega.topSelling'),
-            links: [
-              { label: t('nav.mega.bestSeller'), href: '/shop?style=modern&sort=popular' },
-              { label: t('nav.mega.newArrivals'), href: '/shop?style=modern&sort=new' },
-              { label: t('nav.mega.collections'), href: '/shop?style=modern&category=sets' },
-            ],
-          },
-        ],
-        promoImage: {
-          src: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=500&fit=crop',
-          alt: t('nav.promoAlt.modern'),
-          label: t('nav.modern'),
-          sublabel: t('nav.promo.modern'),
-          href: '/shop?style=modern',
-        },
-      },
-    },
-    {
-      id: 'lab-diamonds',
-      label: t('nav.labDiamonds'),
-      href: '/shop?material=lab-diamond',
-      megaMenu: null,
     },
     {
       id: 'all',

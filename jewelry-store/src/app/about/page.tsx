@@ -51,7 +51,7 @@ const milestones = [
     { year: '2024', title: 'التخطيط والتصميم', desc: 'صمّمنا واجهة المستخدم وبنية النظام واخترنا التقنيات المناسبة لتحقيق رؤيتنا.', color: '#c9a962' },
     { year: '2025', title: 'التطوير والبرمجة', desc: 'بدأنا ببرمجة المنصة باستخدام Next.js و FastAPI مع دمج الذكاء الاصطناعي لتصميم المجوهرات.', color: '#c9a962' },
     { year: '2025', title: 'الاختبار والتحسين', desc: 'اختبرنا المنصة بشكل شامل وعالجنا الأخطاء وحسّنا الأداء والتجربة.', color: '#c9a962' },
-    { year: '2025', title: 'الإطلاق', desc: 'نقدّم مشروع تخرّجنا: منصة LUXE لتصميم المجوهرات بالذكاء الاصطناعي.', color: '#c9a962' },
+    { year: '2025', title: 'الإطلاق', desc: 'نقدّم مشروع تخرّجنا: منصة Vivelt Gold لتصميم المجوهرات بالذكاء الاصطناعي.', color: '#c9a962' },
 ];
 
 // ── الإحصائيات ───────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ export default function AboutPage() {
         { year: '2024', title: lang === 'en' ? 'Planning & Design' : 'التخطيط والتصميم', desc: lang === 'en' ? 'We designed the user interface, system architecture, and chose the right technologies for our vision.' : 'صمّمنا واجهة المستخدم وبنية النظام واخترنا التقنيات المناسبة لتحقيق رؤيتنا.' },
         { year: '2025', title: lang === 'en' ? 'Development' : 'التطوير والبرمجة', desc: lang === 'en' ? 'We built the platform using Next.js and FastAPI with AI integration for jewelry design.' : 'بدأنا ببرمجة المنصة باستخدام Next.js و FastAPI مع دمج الذكاء الاصطناعي لتصميم المجوهرات.' },
         { year: '2025', title: lang === 'en' ? 'Testing & Refinement' : 'الاختبار والتحسين', desc: lang === 'en' ? 'We thoroughly tested the platform, fixed bugs, and improved performance and user experience.' : 'اختبرنا المنصة بشكل شامل وعالجنا الأخطاء وحسّنا الأداء والتجربة.' },
-        { year: '2025', title: lang === 'en' ? 'Launch' : 'الإطلاق', desc: lang === 'en' ? 'Presenting our graduation project: LUXE — an AI-powered jewelry design platform.' : 'نقدّم مشروع تخرّجنا: منصة LUXE لتصميم المجوهرات بالذكاء الاصطناعي.' },
+        { year: '2025', title: lang === 'en' ? 'Launch' : 'الإطلاق', desc: lang === 'en' ? 'Presenting our graduation project: Vivelt Gold — an AI-powered jewelry design platform.' : 'نقدّم مشروع تخرّجنا: منصة Vivelt Gold لتصميم المجوهرات بالذكاء الاصطناعي.' },
     ];
 
     const statsLabels = lang === 'en'
@@ -160,8 +160,8 @@ export default function AboutPage() {
                         </h2>
                         <p className="text-white/55 leading-relaxed mb-4 text-[15px]">
                             {lang === 'en'
-                                ? 'We are a team of eight students from the Computer Technical Institute, Software Engineering Department, united by our passion for technology and creativity. We came together to build LUXE — a platform that combines AI with jewelry design to deliver a unique experience.'
-                                : 'نحن فريق مكوّن من ثمانية طلاب من المعهد التقاني للحاسوب، قسم هندسة البرمجيات، جمعنا الشغف بالتكنولوجيا والإبداع. اتحدنا لبناء منصة LUXE التي تجمع بين الذكاء الاصطناعي وتصميم المجوهرات لتقديم تجربة فريدة.'}
+                                ? 'We are a team of eight students from the Computer Technical Institute, Software Engineering Department, united by our passion for technology and creativity. We came together to build Vivelt Gold — a platform that combines AI with jewelry design to deliver a unique experience.'
+                                : 'نحن فريق مكوّن من ثمانية طلاب من المعهد التقاني للحاسوب، قسم هندسة البرمجيات، جمعنا الشغف بالتكنولوجيا والإبداع. اتحدنا لبناء منصة Vivelt Gold التي تجمع بين الذكاء الاصطناعي وتصميم المجوهرات لتقديم تجربة فريدة.'}
                         </p>
                         <p className="text-white/45 leading-relaxed text-[15px] mb-8">
                             {lang === 'en'

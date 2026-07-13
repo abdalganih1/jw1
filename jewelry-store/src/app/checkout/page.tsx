@@ -37,7 +37,7 @@ export default function CheckoutPage() {
     state: '',
     zip: '',
     country: 'سوريا',
-    paymentMethod: 'cod',
+    paymentMethod: 'shamcash',
   });
 
   useEffect(() => {
@@ -95,13 +95,8 @@ export default function CheckoutPage() {
 
         // Map payment method to ID
         let paymentMethodId: number | null = null;
-        if (formData.paymentMethod === 'cod') {
-          const codMethod = paymentMethods.find(m => m.method_name.toLowerCase().includes('cash'));
-          paymentMethodId = codMethod?.id || 4;
-        } else if (formData.paymentMethod === 'shamcash') {
-          const shamMethod = paymentMethods.find(m => m.method_name.toLowerCase().includes('sham') || m.method_name.toLowerCase().includes('transfer') || m.method_name.toLowerCase().includes('bank'));
-          paymentMethodId = shamMethod?.id || 2;
-        }
+        const shamMethod = paymentMethods.find(m => m.method_name.toLowerCase().includes('sham') || m.method_name.includes('شام') || m.method_name.toLowerCase().includes('transfer') || m.method_name.toLowerCase().includes('bank'));
+        paymentMethodId = shamMethod?.id || null;
 
         // Upload receipt if shamcash
         let transferReceipt: string | null = null;
@@ -160,7 +155,7 @@ export default function CheckoutPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(price);
   };
 
-  const shamCashMethod = paymentMethods.find(m => m.method_name.toLowerCase().includes('sham') || m.method_name.toLowerCase().includes('transfer') || m.method_name.toLowerCase().includes('bank'));
+  const shamCashMethod = paymentMethods.find(m => m.method_name.toLowerCase().includes('sham') || m.method_name.includes('شام') || m.method_name.toLowerCase().includes('transfer') || m.method_name.toLowerCase().includes('bank'));
   const shamCashQR = shamCashMethod?.qr_code_image;
 
   return (
@@ -250,16 +245,7 @@ export default function CheckoutPage() {
                 <h2 className="text-lg font-semibold">{t('checkout.paymentMethod')}</h2>
 
                 <div className="space-y-3">
-                  {/* Cash on Delivery */}
-                  <label className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${formData.paymentMethod === 'cod' ? 'border-[#c9a962] bg-[#c9a962]/5' : 'border-gray-200 hover:border-[#c9a962]'}`}>
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="paymentMethod" value="cod" checked={formData.paymentMethod === 'cod'} onChange={handleChange} className="w-4 h-4 text-[#c9a962] focus:ring-[#c9a962]" />
-                      <span className="font-medium">💵 الدفع عند الاستلام</span>
-                    </div>
-                    <span className="text-xs text-gray-400">Cash on Delivery</span>
-                  </label>
-
-                  {/* ShamCash */}
+                  {/* ShamCash Only */}
                   <label className={`flex items-center justify-between p-4 border rounded-lg cursor-pointer transition-colors ${formData.paymentMethod === 'shamcash' ? 'border-[#c9a962] bg-[#c9a962]/5' : 'border-gray-200 hover:border-[#c9a962]'}`}>
                     <div className="flex items-center gap-3">
                       <input type="radio" name="paymentMethod" value="shamcash" checked={formData.paymentMethod === 'shamcash'} onChange={handleChange} className="w-4 h-4 text-[#c9a962] focus:ring-[#c9a962]" />
@@ -368,7 +354,7 @@ export default function CheckoutPage() {
                   <div className="p-4 bg-[#faf9f7] rounded-lg">
                     <h3 className="font-medium mb-2">طريقة الدفع</h3>
                     <p className="text-sm text-gray-600">
-                      {formData.paymentMethod === 'cod' ? '💵 الدفع عند الاستلام' : '📱 شام كاش'}
+                      📱 شام كاش
                     </p>
                     {receiptFile && formData.paymentMethod === 'shamcash' && (
                       <p className="text-xs text-green-600 mt-1">✅ تم رفع وصل الحوالة</p>

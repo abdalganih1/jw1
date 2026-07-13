@@ -103,7 +103,7 @@ export default function FilterSidebar({
                   : 'text-white/70 hover:text-white hover:bg-white/5'
                 }`}
             >
-              {category.icon} {category.nameAr}
+              {category.nameAr}
             </button>
           ))}
         </div>

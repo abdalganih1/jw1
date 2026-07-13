@@ -70,7 +70,27 @@ function ShopContent() {
     }
 
     if (selectedStones.length > 0) {
-      result = result.filter(p => p.stone && selectedStones.includes(p.stone));
+      const stoneKeywords: Record<string, string[]> = {
+        diamond: ['diamond', 'ماس', 'ألماس', 'ماسة', 'diamond'],
+        ruby: ['ruby', 'ياقوت أحمر', 'روبي', 'ruby'],
+        emerald: ['emerald', 'زمرد', 'emerald'],
+        sapphire: ['sapphire', 'ياقوت أزرق', ' Sapphire'],
+        pearl: ['pearl', 'لؤلؤ', 'pearl'],
+      };
+      result = result.filter(p => {
+        // Check if product material matches a stone (e.g. "Diamond")
+        const materialMatch = selectedStones.some(s => {
+          const kws = stoneKeywords[s] || [s];
+          return kws.some(kw => p.metal?.toLowerCase().includes(kw.toLowerCase()));
+        });
+        if (materialMatch) return true;
+        // Check if product name/description contains stone keywords
+        const searchText = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''}`.toLowerCase();
+        return selectedStones.some(s => {
+          const kws = stoneKeywords[s] || [s];
+          return kws.some(kw => searchText.includes(kw.toLowerCase()));
+        });
+      });
     }
 
     if (karatParam) {
@@ -113,13 +133,14 @@ function ShopContent() {
     result = result.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
     if (searchParam) {
-      const query = searchParam.toLowerCase();
-      result = result.filter(p =>
-        p.name?.toLowerCase().includes(query) ||
-        p.nameAr?.includes(query) ||
-        p.description?.toLowerCase().includes(query) ||
-        p.descriptionAr?.includes(query)
-      );
+      const query = decodeURIComponent(searchParam).toLowerCase();
+      // Split query into individual terms for broader matching (e.g. "ذهب+أصفر" → ["ذهب", "أصفر"])
+      const terms = query.split(/[\s+]+/).filter(Boolean);
+      result = result.filter(p => {
+        const searchText = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''} ${p.metal || ''} ${p.metalAr || ''} ${p.metalAr || p.metal || ''} ${p.karat || ''} ${p.stone || ''} ${p.color || ''} ${p.colorAr || ''}`.toLowerCase();
+        // Match if ALL terms are found somewhere
+        return terms.every(term => searchText.includes(term));
+      });
     }
 
     switch (sortBy) {

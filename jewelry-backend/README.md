@@ -1,6 +1,6 @@
-# LUXE Jewelry Backend API
+# Vivelt Gold Jewelry Backend API
 
-This is the FastAPI backend for the LUXE Jewelry E-commerce and AI Design platform.
+This is the FastAPI backend for the Vivelt Gold Jewelry E-commerce and AI Design platform.
 
 ## 🛠️ Features
 

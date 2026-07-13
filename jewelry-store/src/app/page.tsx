@@ -34,10 +34,10 @@ export default function Home() {
   const newProducts = products.length > 8 ? products.slice(0, 4) : products;
 
   const displayCategories = categories.length > 0 ? categories : [
-    { id: 'rings', name: 'Rings', nameAr: 'خواتم', icon: '💍' },
-    { id: 'necklaces', name: 'Necklaces', nameAr: 'قلادات', icon: '📿' },
-    { id: 'bracelets', name: 'Bracelets', nameAr: 'أساور', icon: '⌚' },
-    { id: 'earrings', name: 'Earrings', nameAr: 'أقراط', icon: '✨' }
+    { id: 'rings', name: 'Rings', nameAr: 'خواتم', icon: '' },
+    { id: 'necklaces', name: 'Necklaces', nameAr: 'قلادات', icon: '' },
+    { id: 'bracelets', name: 'Bracelets', nameAr: 'أساور', icon: '' },
+    { id: 'earrings', name: 'Earrings', nameAr: 'أقراط', icon: '' }
   ];
 
   return (
@@ -46,7 +46,7 @@ export default function Home() {
       <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1920"
+            src="/joudi-hero.jpg"
             alt="Luxury jewelry hero"
             fill
             className="object-cover"
@@ -117,7 +117,6 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className={`absolute bottom-0 left-0 right-0 p-4 lg:p-6 ${lang === 'en' ? 'text-left' : 'text-right'}`}>
-                  <span className="text-2xl lg:text-3xl mb-2 block">{category.icon}</span>
                   <h3 className="text-lg lg:text-xl font-semibold text-white">
                     {lang === 'en' ? category.name : category.nameAr}
                   </h3>
@@ -167,7 +166,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="relative aspect-square max-w-lg mx-auto lg:mx-0">
               <Image
-                src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800"
+                src="/joudi-hero.jpg"
                 alt="Custom jewelry design"
                 fill
                 className="object-cover rounded-lg"

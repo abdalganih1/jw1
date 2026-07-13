@@ -124,7 +124,7 @@ function ContactContent() {
     { q: t('هل يمكنني إرجاع أو استبدال المنتج؟', 'Can I return or exchange a product?'), a: t('نعم، نقبل الإرجاع خلال 30 يوماً من الاستلام.', 'Yes, we accept returns within 30 days of receipt, provided the item is in its original condition.') },
     { q: t('هل المجوهرات مضمونة الجودة؟', 'Is the jewelry quality guaranteed?'), a: t('بالتأكيد، كل قطعة تأتي مع شهادة مصادقة من جهات معتمدة.', 'Absolutely, every piece comes with an authentication certificate from accredited bodies.') },
     { q: t('هل يمكنني تخصيص تصميم مجوهرات؟', 'Can I customize jewelry designs?'), a: t('نعم! خدمة التصميم الشخصي متاحة لجميع عملائنا.', 'Yes! Custom design services are available for all our customers.') },
-    { q: t('ما هي طرق الدفع المتاحة؟', 'What payment methods are available?'), a: t('نقبل بطاقات الائتمان والخصم المباشر، مدى، Apple Pay، وتحويل بنكي.', 'We accept credit/debit cards, Mada, Apple Pay, and bank transfers.') },
+    { q: t('ما هي طرق الدفع المتاحة؟', 'What payment methods are available?'), a: t('نقبل الدفع عبر شام كاش Sham Cash.', 'We accept payment via Sham Cash.') },
   ];
 
   return (

@@ -107,9 +107,7 @@ export default function Footer() {
               <div className="flex items-center gap-4 text-gray-400 text-sm">
                 <span>{t('نقبل الدفع بـ:', 'We accept:')}</span>
                 <div className="flex gap-2">
-                  <span className="px-2 py-1 bg-white/10 rounded text-xs">VISA</span>
-                  <span className="px-2 py-1 bg-white/10 rounded text-xs">MADA</span>
-                  <span className="px-2 py-1 bg-white/10 rounded text-xs">Apple Pay</span>
+                  <span className="px-2 py-1 bg-white/10 rounded text-xs">Sham Cash</span>
                 </div>
               </div>
             </div>
