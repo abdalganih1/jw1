@@ -10,6 +10,7 @@ from models import (
     Category,
     Jeweler,
     Order,
+    OrderItem,
     PaymentMethod,
     UserGeneratedDesign,
     DesignRequest,
@@ -373,7 +374,7 @@ def get_all_orders_detailed(
         db.query(Order)
         .options(
             joinedload(Order.user),
-            joinedload(Order.items).joinedload("product"),
+            joinedload(Order.items).joinedload(OrderItem.product),
             joinedload(Order.payment_method),
         )
         .order_by(Order.order_date.desc())

@@ -120,8 +120,8 @@ export default function CheckoutPage() {
         });
 
         if (res.ok) {
-          alert(t('checkout.orderSuccess') || 'تم الطلب بنجاح!');
-          router.push('/shop');
+          alert(t('checkout.orderSuccess') || 'تم الطلب بنجاح! يمكنك متابعة حالة طلبك من صفحة حسابي.');
+          router.push('/account?tab=orders');
         } else {
           alert(t('checkout.orderError') || 'حدث خطأ');
         }

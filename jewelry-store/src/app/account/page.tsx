@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products as staticProducts } from '@/data/products';
-import { API_URL, mapApiProduct } from '@/lib/api';
+import { API_URL, mapApiProduct, resolveImageUrl } from '@/lib/api';
 import { Product } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,6 +38,9 @@ function AccountContent() {
   const [designsLoading, setDesignsLoading] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [orderDetails, setOrderDetails] = useState<Record<number, any>>({});
+  const [detailsLoading, setDetailsLoading] = useState<number | null>(null);
   const [addresses, setAddresses] = useState<Array<{ id: string; label: string; name: string; street: string; city: string; country: string; phone: string; isDefault: boolean }>>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressForm, setAddressForm] = useState({ label: '', name: '', street: '', city: '', country: 'سوريا', phone: '' });
@@ -102,6 +105,29 @@ function AccountContent() {
     localStorage.setItem('addresses', JSON.stringify(addrs));
   };
 
+  const toggleOrderDetails = async (orderId: number) => {
+    if (expandedOrderId === orderId) {
+      setExpandedOrderId(null);
+      return;
+    }
+    setExpandedOrderId(orderId);
+    if (orderDetails[orderId] || !token) return;
+    setDetailsLoading(orderId);
+    try {
+      const res = await fetch(`${API_URL}/orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrderDetails(prev => ({ ...prev, [orderId]: data }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setDetailsLoading(null);
+    }
+  };
+
   const handleAddAddress = () => {
     if (!addressForm.name || !addressForm.street || !addressForm.city) return;
     const newAddr = { ...addressForm, id: Date.now().toString(), isDefault: addresses.length === 0 };
@@ -141,6 +167,8 @@ function AccountContent() {
       case 'delivered': return 'text-green-600 bg-green-50';
       case 'shipped': return 'text-blue-600 bg-blue-50';
       case 'processing': return 'text-yellow-600 bg-yellow-50';
+      case 'pending': return 'text-orange-600 bg-orange-50';
+      case 'cancelled': return 'text-red-600 bg-red-50';
       default: return 'text-gray-600 bg-gray-50';
     }
   };
@@ -150,6 +178,8 @@ function AccountContent() {
       case 'delivered': return 'تم التسليم';
       case 'shipped': return 'تم الشحن';
       case 'processing': return 'قيد التجهيز';
+      case 'pending': return 'قيد المراجعة';
+      case 'cancelled': return 'ملغي';
       default: return status;
     }
   };
@@ -214,20 +244,127 @@ function AccountContent() {
                 ) : (
                 <div className="space-y-4">
                   {orders.map((order: any) => (
-                    <div key={order.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="text-right">
-                          <p className="font-medium">#{order.id}</p>
-                          <p className="text-sm text-gray-500">{order.order_date ? new Date(order.order_date).toLocaleDateString('ar-SA') : ''}</p>
+                    <div key={order.id} className="border rounded-lg overflow-hidden">
+                      <div
+                        className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${expandedOrderId === order.id ? 'bg-gray-50' : ''}`}
+                        onClick={() => toggleOrderDetails(order.id)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-right">
+                            <p className="font-medium">طلب #{order.id}</p>
+                            <p className="text-sm text-gray-500">{order.order_date ? new Date(order.order_date).toLocaleDateString('ar-SA') : ''}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor((order.status || 'PENDING').toLowerCase())}`}>
+                            {getStatusText((order.status || 'PENDING').toLowerCase())}
+                          </span>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor((order.status || 'PENDING').toLowerCase())}`}>
-                          {getStatusText((order.status || 'PENDING').toLowerCase())}
-                        </span>
+
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <span className="font-bold text-[#c9a962]">{formatPrice(order.total_amount || 0)}</span>
+                          <span className="text-sm text-gray-400 flex items-center gap-1">
+                            {expandedOrderId === order.id ? 'إخفاء التفاصيل' : 'عرض التفاصيل'}
+                            <svg className={`w-4 h-4 transition-transform ${expandedOrderId === order.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t">
-                        <span className="font-bold text-[#c9a962]">{formatPrice(order.total_amount || 0)}</span>
-                      </div>
+                      {expandedOrderId === order.id && (
+                        <div className="border-t bg-gray-50/50 p-4">
+                          {detailsLoading === order.id ? (
+                            <div className="flex justify-center py-6">
+                              <div className="w-8 h-8 border-4 border-[#c9a962] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                          ) : orderDetails[order.id] ? (
+                            <div className="space-y-4">
+                              {/* Order Items */}
+                              <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-3">المنتجات</h3>
+                                <div className="space-y-3">
+                                  {orderDetails[order.id].items?.map((item: any) => {
+                                    const product = item.product;
+                                    const productImage = product?.images?.length > 0
+                                      ? resolveImageUrl(product.images[0].image_path)
+                                      : product?.image_path
+                                        ? resolveImageUrl(product.image_path)
+                                        : 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=200';
+                                    return (
+                                      <Link href={`/product/${product?.id}`} key={item.id} className="flex gap-3 bg-white rounded-lg p-3 hover:shadow-sm transition-shadow">
+                                        <div className="relative w-16 h-16 flex-shrink-0">
+                                          <Image
+                                            src={productImage}
+                                            alt={product?.name || product?.name_en || ''}
+                                            fill
+                                            className="object-cover rounded-md"
+                                            sizes="64px"
+                                            unoptimized
+                                          />
+                                        </div>
+                                        <div className="flex-1 text-right">
+                                          <p className="font-medium text-sm">{product?.name || product?.name_en || ''}</p>
+                                          <p className="text-xs text-gray-500 mt-1">
+                                            الكمية: {item.quantity} × {formatPrice(item.unit_price)}
+                                          </p>
+                                          <p className="text-sm font-bold text-[#c9a962] mt-1">
+                                            {formatPrice(item.subtotal)}
+                                          </p>
+                                        </div>
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Shipping Address */}
+                              {orderDetails[order.id].shipping_address && (
+                                <div className="bg-white rounded-lg p-3">
+                                  <h3 className="text-sm font-semibold text-gray-700 mb-2">عنوان الشحن</h3>
+                                  <p className="text-sm text-gray-600">{orderDetails[order.id].shipping_address}</p>
+                                </div>
+                              )}
+
+                              {/* Payment Method */}
+                              {orderDetails[order.id].payment_method && (
+                                <div className="bg-white rounded-lg p-3">
+                                  <h3 className="text-sm font-semibold text-gray-700 mb-2">طريقة الدفع</h3>
+                                  <p className="text-sm text-gray-600">{orderDetails[order.id].payment_method.method_name}</p>
+                                </div>
+                              )}
+
+                              {/* Transfer Receipt */}
+                              {orderDetails[order.id].transfer_receipt && (
+                                <div className="bg-white rounded-lg p-3">
+                                  <h3 className="text-sm font-semibold text-gray-700 mb-2">إيصال التحويل</h3>
+                                  <a
+                                    href={resolveImageUrl(orderDetails[order.id].transfer_receipt)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block"
+                                  >
+                                    <Image
+                                      src={resolveImageUrl(orderDetails[order.id].transfer_receipt)}
+                                      alt="إيصال التحويل"
+                                      width={120}
+                                      height={120}
+                                      className="rounded-md object-cover"
+                                      unoptimized
+                                    />
+                                  </a>
+                                </div>
+                              )}
+
+                              {/* Total */}
+                              <div className="bg-white rounded-lg p-3 flex justify-between items-center border-t-2 border-[#c9a962]">
+                                <span className="font-semibold text-gray-700">المجموع</span>
+                                <span className="font-bold text-lg text-[#c9a962]">{formatPrice(orderDetails[order.id].total_amount || 0)}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-center text-sm text-gray-500 py-4">تعذر تحميل تفاصيل الطلب</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
