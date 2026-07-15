@@ -134,12 +134,26 @@ function ShopContent() {
 
     if (searchParam) {
       const query = decodeURIComponent(searchParam).toLowerCase();
-      // Split query into individual terms for broader matching (e.g. "ذهب+أصفر" → ["ذهب", "أصفر"])
+      // Arabic→English synonym map for material & color terms used in navbar search links
+      const synonyms: Record<string, string[]> = {
+        'ألماس': ['diamond', 'ألماس', 'ماس', 'ماسة', 'ألماسي'],
+        'ذهب': ['gold', 'ذهب', 'ذهبي', 'ذهبية'],
+        'فضة': ['silver', 'فضة', 'فضي', 'فضية'],
+        'بلاتين': ['platinum', 'بلاتين', 'بلاتيني'],
+        'أبيض': ['white', 'أبيض', 'بيضاء'],
+        'أصفر': ['yellow', 'أصفر', 'صفراء'],
+        'وردي': ['rose', 'وردي', 'وردية', 'pink'],
+      };
+      // Split query into individual terms (e.g. "ذهب+أصفر" → ["ذهب", "أصفر"])
       const terms = query.split(/[\s+]+/).filter(Boolean);
       result = result.filter(p => {
-        const searchText = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''} ${p.metal || ''} ${p.metalAr || ''} ${p.metalAr || p.metal || ''} ${p.karat || ''} ${p.stone || ''} ${p.color || ''} ${p.colorAr || ''}`.toLowerCase();
-        // Match if ALL terms are found somewhere
-        return terms.every(term => searchText.includes(term));
+        const searchText = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''} ${p.metal || ''} ${p.metalAr || ''} ${p.karat || ''} ${p.stone || ''} ${p.color || ''} ${p.colorAr || ''}`.toLowerCase();
+        // For each search term, match the term itself OR any of its synonyms
+        return terms.every(term => {
+          const syns = synonyms[term] || [];
+          if (searchText.includes(term)) return true;
+          return syns.some(s => searchText.includes(s.toLowerCase()));
+        });
       });
     }
 

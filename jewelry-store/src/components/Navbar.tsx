@@ -51,8 +51,6 @@ export default function Navbar() {
             title: t('nav.mega.featured'),
             links: [
               { label: t('nav.mega.bestSeller'), href: '/shop?search=ألماس&sort=popular' },
-              { label: t('nav.mega.newArrivals'), href: '/shop?search=ألماس&sort=new' },
-              { label: t('nav.mega.unique'), href: '/shop?search=ألماس' },
             ],
           },
           {
@@ -61,7 +59,6 @@ export default function Navbar() {
               { label: t('nav.mega.whiteGold'), href: '/shop?search=ألماس+أبيض' },
               { label: t('nav.mega.yellowGold'), href: '/shop?search=ألماس+أصفر' },
               { label: t('nav.mega.roseGold'), href: '/shop?search=ألماس+وردي' },
-              { label: t('nav.platinum'), href: '/shop?search=ألماس+بلاتين' },
             ],
           },
           {
@@ -75,7 +72,7 @@ export default function Navbar() {
           },
         ],
         promoImage: {
-          src: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400&h=500&fit=crop',
+          src: '/nav-diamonds.jpg',
           alt: t('nav.promoAlt.diamonds'),
           label: t('nav.diamonds'),
           sublabel: t('nav.promo.diamonds'),
@@ -125,7 +122,7 @@ export default function Navbar() {
           },
         ],
         promoImage: {
-          src: 'https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&h=500&fit=crop',
+          src: '/nav-gold.jpg',
           alt: t('nav.promoAlt.gold'),
           label: t('nav.gold'),
           sublabel: t('nav.promo.gold'),
@@ -158,7 +155,7 @@ export default function Navbar() {
           },
         ],
         promoImage: {
-          src: 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&h=500&fit=crop',
+          src: '/nav-silver.jpg',
           alt: t('nav.promoAlt.silver'),
           label: t('nav.silver'),
           sublabel: t('nav.promo.silver'),
@@ -191,7 +188,7 @@ export default function Navbar() {
           },
         ],
         promoImage: {
-          src: 'https://images.unsplash.com/photo-1608042314453-ae338d80c427?w=400&h=500&fit=crop',
+          src: '/nav-platinum.jpg',
           alt: t('nav.promoAlt.platinum'),
           label: t('nav.platinum'),
           sublabel: t('nav.promo.platinum'),
