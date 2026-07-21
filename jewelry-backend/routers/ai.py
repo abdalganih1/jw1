@@ -12,7 +12,9 @@ from routers.auth import get_current_user
 import os
 import uuid
 import base64
+import io
 import requests as http_requests
+from PIL import Image
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -169,6 +171,24 @@ def _generate_image(prompt: str) -> tuple[bytes, str]:
     raise HTTPException(status_code=500, detail="No image generation API configured")
 
 
+MAX_SIZE = int(os.getenv("IMAGE_MAX_SIZE", "768"))
+JPEG_QUALITY = int(os.getenv("JPEG_QUALITY", "85"))
+
+
+def _compress_image(image_bytes: bytes) -> bytes:
+    """Compress and resize image for web: convert to RGB JPEG, max 768px, quality 85.
+    Fixes: huge PNG sizes, alpha-channel white screen, slow loading."""
+    img = Image.open(io.BytesIO(image_bytes))
+    img = img.convert("RGB")  # Remove alpha (fixes white screen)
+    if max(img.size) > MAX_SIZE:
+        ratio = MAX_SIZE / max(img.size)
+        new_size = (int(img.width * ratio), int(img.height * ratio))
+        img = img.resize(new_size, Image.LANCZOS)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=JPEG_QUALITY, optimize=True)
+    return buf.getvalue()
+
+
 @router.post("/generate-design", response_model=AIDesignResponse)
 def generate_design(
     request: AIDesignRequest,
@@ -182,8 +202,9 @@ def generate_design(
 
     try:
         image_bytes, model_used = _generate_image(prompt)
+        image_bytes = _compress_image(image_bytes)
 
-        filename = f"{uuid.uuid4()}.png"
+        filename = f"{uuid.uuid4()}.jpg"
         save_dir = "static/generated_designs"
         os.makedirs(save_dir, exist_ok=True)
         filepath = os.path.join(save_dir, filename)
@@ -285,8 +306,9 @@ def regenerate_design(
 
     try:
         image_bytes, model_used = _generate_image(prompt)
+        image_bytes = _compress_image(image_bytes)
 
-        filename = f"{uuid.uuid4()}.png"
+        filename = f"{uuid.uuid4()}.jpg"
         save_dir = "static/generated_designs"
         os.makedirs(save_dir, exist_ok=True)
         filepath = os.path.join(save_dir, filename)
@@ -361,8 +383,9 @@ def generate_product_image(
 
     try:
         image_bytes, model_used = _generate_image(full_prompt)
+        image_bytes = _compress_image(image_bytes)
 
-        filename = f"{uuid.uuid4()}.png"
+        filename = f"{uuid.uuid4()}.jpg"
         save_dir = "static/product_images"
         os.makedirs(save_dir, exist_ok=True)
         filepath = os.path.join(save_dir, filename)
