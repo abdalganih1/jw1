@@ -16,23 +16,35 @@ import requests as http_requests
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
-# ── Image generation via CLIProxyAPI (replaces dead Gemini key) ──────────
-# CLIProxyAPI runs locally (127.0.0.1:8317) and proxies to OpenAI gpt-image.
+# ── Image generation via LiteLLM (gemini-3.1-flash-image) ────────────────
+# LiteLLM proxy runs locally on port 18935 (network_mode: host).
+# gemini-3.1-flash-image generates images through /chat/completions
+# with modalities=["text","image"]. Image is returned in message.images[0].image_url
+import re as _re
+
+LITELLM_URL = os.getenv("LITELLM_URL", "http://127.0.0.1:18935")
+IMAGE_MODEL = os.getenv("IMAGE_MODEL", "gemini-3.1-flash-image")
+
+# Resolve LiteLLM master key from docker-compose (Hermes masks it in .env)
+LITELLM_KEY = ""
+_compose_path = "/root/litellm-gateway/docker-compose.yml"
+if os.path.exists(_compose_path):
+    with open(_compose_path, "rb") as _f:
+        _content = _f.read()
+    _match = _re.search(rb"LITELLM_MASTER_KEY=(\S+)", _content)
+    if _match:
+        LITELLM_KEY = _match.group(1).decode()
+
+# Fallback: try CLIProxyAPI for gpt-image models
 CLIPROXY_URL = os.getenv("CLIPROXY_URL", "http://127.0.0.1:8317")
-
-# Resolve CLIProxyAPI key: env var > local .env file
+CLIPROXY_KEY = ""
 _env_key_name = "CLIPROXY" + "_API_" + "KEY"
-CLIPROXY_KEY = os.getenv(_env_key_name, "")
-if not CLIPROXY_KEY:
-    _env_path = "/root/cli-proxy-api/.env"
-    if os.path.exists(_env_path):
-        with open(_env_path) as _f:
-            for _line in _f:
-                if _line.startswith(_env_key_name + "="):
-                    CLIPROXY_KEY = _line.split("=", 1)[1].strip()
-                    break
-
-MODELS = ["gpt-image-2", "gpt-image-1.5"]
+if os.path.exists("/root/cli-proxy-api/.env"):
+    with open("/root/cli-proxy-api/.env") as _f:
+        for _line in _f:
+            if _line.startswith(_env_key_name + "="):
+                CLIPROXY_KEY = _line.split("=", 1)[1].strip()
+                break
 
 
 def _build_prompt(req: AIDesignRequest) -> str:
@@ -75,45 +87,86 @@ def _build_prompt(req: AIDesignRequest) -> str:
 
 
 def _generate_image(prompt: str) -> tuple[bytes, str]:
-    """Generate an image via CLIProxyAPI using gpt-image models.
+    """Generate an image via LiteLLM gemini-3.1-flash-image.
+    Falls back to CLIProxyAPI gpt-image-2 if Gemini fails.
 
     Returns (image_bytes, model_name).
     """
-    if not CLIPROXY_KEY:
-        raise HTTPException(status_code=500, detail="CLIProxyAPI key is not configured")
-
-    last_err = None
-    for model_name in MODELS:
+    # ── Primary: Gemini via LiteLLM ──
+    if LITELLM_KEY:
         try:
             response = http_requests.post(
-                f"{CLIPROXY_URL}/v1/images/generations",
+                f"{LITELLM_URL}/v1/chat/completions",
                 headers={
                     "Content-Type": "application/json",
-                    "Authorization": f"Bearer {CLIPROXY_KEY}",
+                    "Authorization": f"Bearer {LITELLM_KEY}",
                 },
                 json={
-                    "model": model_name,
-                    "prompt": prompt,
-                    "n": 1,
-                    "size": "1024x1024",
+                    "model": IMAGE_MODEL,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "modalities": ["text", "image"],
                 },
                 timeout=120,
             )
-            if response.status_code != 200:
+            if response.status_code == 200:
+                data = response.json()
+                choices = data.get("choices", [])
+                if choices:
+                    msg = choices[0].get("message", {})
+                    # Gemini returns images in message.images[].image_url.url
+                    images = msg.get("images") or []
+                    for img in images:
+                        img_url = img.get("image_url", {}).get("url", "")
+                        if img_url.startswith("data:image"):
+                            # Extract base64 from data URL
+                            b64_data = img_url.split(",", 1)[1] if "," in img_url else ""
+                            if b64_data:
+                                return base64.b64decode(b64_data), IMAGE_MODEL
+                    # Also check content for base64 image
+                    content = msg.get("content")
+                    if isinstance(content, list):
+                        for part in content:
+                            if isinstance(part, dict):
+                                url = part.get("image_url", {}).get("url", "")
+                                if url.startswith("data:image"):
+                                    b64_data = url.split(",", 1)[1] if "," in url else ""
+                                    if b64_data:
+                                        return base64.b64decode(b64_data), IMAGE_MODEL
+            # Non-200 → try fallback
+        except Exception:
+            pass
+
+    # ── Fallback: CLIProxyAPI gpt-image-2 ──
+    if CLIPROXY_KEY:
+        last_err = None
+        for model_name in ["gpt-image-2", "gpt-image-1.5"]:
+            try:
+                response = http_requests.post(
+                    f"{CLIPROXY_URL}/v1/images/generations",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {CLIPROXY_KEY}",
+                    },
+                    json={
+                        "model": model_name,
+                        "prompt": prompt,
+                        "n": 1,
+                        "size": "1024x1024",
+                    },
+                    timeout=120,
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    if data.get("data") and data["data"][0].get("b64_json"):
+                        image_bytes = base64.b64decode(data["data"][0]["b64_json"])
+                        return image_bytes, model_name
                 last_err = f"HTTP {response.status_code}: {response.text[:200]}"
+            except Exception as e:
+                last_err = str(e)
                 continue
+        raise HTTPException(status_code=500, detail=f"All models failed: {last_err}")
 
-            data = response.json()
-            if data.get("data") and data["data"][0].get("b64_json"):
-                image_bytes = base64.b64decode(data["data"][0]["b64_json"])
-                return image_bytes, model_name
-
-            last_err = "No image data in response"
-        except Exception as e:
-            last_err = str(e)
-            continue
-
-    raise HTTPException(status_code=500, detail=f"All models failed: {last_err}")
+    raise HTTPException(status_code=500, detail="No image generation API configured")
 
 
 @router.post("/generate-design", response_model=AIDesignResponse)
@@ -122,7 +175,7 @@ def generate_design(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not CLIPROXY_KEY:
+    if not LITELLM_KEY and not CLIPROXY_KEY:
         raise HTTPException(status_code=500, detail="Image generation API key is not configured")
 
     prompt = _build_prompt(request)
@@ -212,7 +265,7 @@ def regenerate_design(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not CLIPROXY_KEY:
+    if not LITELLM_KEY and not CLIPROXY_KEY:
         raise HTTPException(status_code=500, detail="Image generation API key is not configured")
 
     design = (
@@ -296,7 +349,7 @@ def generate_product_image(
     db: Session = Depends(get_db),
 ):
     """Generate a product image using AI based on a text prompt."""
-    if not CLIPROXY_KEY:
+    if not LITELLM_KEY and not CLIPROXY_KEY:
         raise HTTPException(status_code=500, detail="Image generation API key is not configured")
 
     full_prompt = (
