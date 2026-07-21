@@ -1,6 +1,6 @@
 'use client';
 
-import { categories as staticCategories, metals, stones } from '@/data/products';
+import { categories as staticCategories, metals } from '@/data/products';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FilterSidebarProps {
@@ -125,27 +125,6 @@ export default function FilterSidebar({
                 style={{ accentColor: '#c9a962' }}
               />
               <span className="text-sm text-white/60 group-hover:text-white/90 transition-colors">{metal.nameAr}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="h-px bg-[#c9a962]/10 mb-5" />
-
-      {/* الحجر */}
-      <div className="mb-5">
-        <h3 className="text-xs font-semibold text-[#c9a962]/80 uppercase tracking-widest mb-3">{t('filter.stone')}</h3>
-        <div className="space-y-2.5">
-          {stones.map((stone) => (
-            <label key={stone.id} className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={selectedStones.includes(stone.id)}
-                onChange={() => onStoneChange(stone.id)}
-                className="w-4 h-4 rounded"
-                style={{ accentColor: '#c9a962' }}
-              />
-              <span className="text-sm text-white/60 group-hover:text-white/90 transition-colors">{stone.nameAr}</span>
             </label>
           ))}
         </div>

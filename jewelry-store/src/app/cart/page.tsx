@@ -95,8 +95,8 @@ export default function CartPage() {
     const token = localStorage.getItem('token');
     if (token) {
       try {
-        // Backend supports DELETE /api/cart/items/{product_id}
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/cart/items/${item.productId}`, {
+        // Backend DELETE /api/cart/items/{cart_item_id}
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'}/cart/items/${item.id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });
