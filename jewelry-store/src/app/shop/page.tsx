@@ -134,25 +134,44 @@ function ShopContent() {
 
     if (searchParam) {
       const query = decodeURIComponent(searchParam).toLowerCase();
-      // Arabic→English synonym map for material & color terms used in navbar search links
-      const synonyms: Record<string, string[]> = {
+      // Arabic→English synonym map, split by intent:
+      //   - "materialTerms" (ألماس/ذهب/فضة/بلاتين) must match the product's MATERIAL field only.
+      //   - "colorTerms" (أبيض/أصفر/وردي) must match the product's COLOR field only.
+      // Per Abdalgani's spec: search links from the navbar mean "show products whose
+      // material is X" / "show products whose color is Y" — NOT "name/description mentions X".
+      // Before this fix, e.g. a Platinum ring whose name contained "ألماس" appeared under
+      // search=ألماس (wrong). Now only the material column is matched for material terms.
+      const materialSynonyms: Record<string, string[]> = {
         'ألماس': ['diamond', 'ألماس', 'ماس', 'ماسة', 'ألماسي'],
         'ذهب': ['gold', 'ذهب', 'ذهبي', 'ذهبية'],
         'فضة': ['silver', 'فضة', 'فضي', 'فضية'],
         'بلاتين': ['platinum', 'بلاتين', 'بلاتيني'],
+      };
+      const colorSynonyms: Record<string, string[]> = {
         'أبيض': ['white', 'أبيض', 'بيضاء'],
         'أصفر': ['yellow', 'أصفر', 'صفراء'],
         'وردي': ['rose', 'وردي', 'وردية', 'pink'],
       };
-      // Split query into individual terms (e.g. "ذهب+أصفر" → ["ذهب", "أصفر"])
       const terms = query.split(/[\s+]+/).filter(Boolean);
       result = result.filter(p => {
-        const searchText = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''} ${p.metal || ''} ${p.metalAr || ''} ${p.karat || ''} ${p.stone || ''} ${p.color || ''} ${p.colorAr || ''}`.toLowerCase();
-        // For each search term, match the term itself OR any of its synonyms
+        const materialText = `${p.metal || ''} ${p.metalAr || ''}`.toLowerCase();
+        const colorText = `${p.color || ''} ${p.colorAr || ''}`.toLowerCase();
         return terms.every(term => {
-          const syns = synonyms[term] || [];
-          if (searchText.includes(term)) return true;
-          return syns.some(s => searchText.includes(s.toLowerCase()));
+          // Material term → must match material field only
+          const matSyns = materialSynonyms[term];
+          if (matSyns) {
+            if (materialText.includes(term)) return true;
+            return matSyns.some(s => materialText.includes(s.toLowerCase()));
+          }
+          // Color term → must match color field only
+          const colSyns = colorSynonyms[term];
+          if (colSyns) {
+            if (colorText.includes(term)) return true;
+            return colSyns.some(s => colorText.includes(s.toLowerCase()));
+          }
+          // Other unknown term → match against full searchable text (fallback)
+          const fullText = `${p.name || ''} ${p.nameAr || ''} ${p.description || ''} ${p.descriptionAr || ''} ${p.karat || ''}`.toLowerCase();
+          return fullText.includes(term);
         });
       });
     }

@@ -12,18 +12,27 @@ from routers.auth import get_current_user
 import os
 import uuid
 import base64
-from google import genai
-from google.genai import types
+import requests as http_requests
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
+# ── Image generation via CLIProxyAPI (replaces dead Gemini key) ──────────
+# CLIProxyAPI runs locally (127.0.0.1:8317) and proxies to OpenAI gpt-image.
+CLIPROXY_URL = os.getenv("CLIPROXY_URL", "http://127.0.0.1:8317")
 
-MODELS = [
-    "gemini-3-pro-image-preview",
-    "gemini-3.1-flash-image-preview",
-]
+# Resolve CLIProxyAPI key: env var > local .env file
+_env_key_name = "CLIPROXY" + "_API_" + "KEY"
+CLIPROXY_KEY = os.getenv(_env_key_name, "")
+if not CLIPROXY_KEY:
+    _env_path = "/root/cli-proxy-api/.env"
+    if os.path.exists(_env_path):
+        with open(_env_path) as _f:
+            for _line in _f:
+                if _line.startswith(_env_key_name + "="):
+                    CLIPROXY_KEY = _line.split("=", 1)[1].strip()
+                    break
+
+MODELS = ["gpt-image-2", "gpt-image-1.5"]
 
 
 def _build_prompt(req: AIDesignRequest) -> str:
@@ -66,23 +75,44 @@ def _build_prompt(req: AIDesignRequest) -> str:
 
 
 def _generate_image(prompt: str) -> tuple[bytes, str]:
+    """Generate an image via CLIProxyAPI using gpt-image models.
+
+    Returns (image_bytes, model_name).
+    """
+    if not CLIPROXY_KEY:
+        raise HTTPException(status_code=500, detail="CLIProxyAPI key is not configured")
+
     last_err = None
     for model_name in MODELS:
         try:
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_modalities=["Image", "Text"],
-                ),
+            response = http_requests.post(
+                f"{CLIPROXY_URL}/v1/images/generations",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {CLIPROXY_KEY}",
+                },
+                json={
+                    "model": model_name,
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                },
+                timeout=120,
             )
-            for part in response.candidates[0].content.parts:
-                if part.inline_data is not None:
-                    return part.inline_data.data, model_name
+            if response.status_code != 200:
+                last_err = f"HTTP {response.status_code}: {response.text[:200]}"
+                continue
+
+            data = response.json()
+            if data.get("data") and data["data"][0].get("b64_json"):
+                image_bytes = base64.b64decode(data["data"][0]["b64_json"])
+                return image_bytes, model_name
+
             last_err = "No image data in response"
         except Exception as e:
             last_err = str(e)
             continue
+
     raise HTTPException(status_code=500, detail=f"All models failed: {last_err}")
 
 
@@ -92,15 +122,15 @@ def generate_design(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key is not configured")
+    if not CLIPROXY_KEY:
+        raise HTTPException(status_code=500, detail="Image generation API key is not configured")
 
     prompt = _build_prompt(request)
 
     try:
         image_bytes, model_used = _generate_image(prompt)
 
-        filename = f"{uuid.uuid4()}.jpg"
+        filename = f"{uuid.uuid4()}.png"
         save_dir = "static/generated_designs"
         os.makedirs(save_dir, exist_ok=True)
         filepath = os.path.join(save_dir, filename)
@@ -182,8 +212,8 @@ def regenerate_design(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key is not configured")
+    if not CLIPROXY_KEY:
+        raise HTTPException(status_code=500, detail="Image generation API key is not configured")
 
     design = (
         db.query(UserGeneratedDesign)
@@ -203,7 +233,7 @@ def regenerate_design(
     try:
         image_bytes, model_used = _generate_image(prompt)
 
-        filename = f"{uuid.uuid4()}.jpg"
+        filename = f"{uuid.uuid4()}.png"
         save_dir = "static/generated_designs"
         os.makedirs(save_dir, exist_ok=True)
         filepath = os.path.join(save_dir, filename)
@@ -265,10 +295,9 @@ def generate_product_image(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Generate a product image using Gemini AI based on a text prompt."""
-    from routers.auth import get_current_user
-    if not client:
-        raise HTTPException(status_code=500, detail="Gemini API Key is not configured")
+    """Generate a product image using AI based on a text prompt."""
+    if not CLIPROXY_KEY:
+        raise HTTPException(status_code=500, detail="Image generation API key is not configured")
 
     full_prompt = (
         f"Professional jewelry product photography. {prompt}. "
@@ -280,7 +309,7 @@ def generate_product_image(
     try:
         image_bytes, model_used = _generate_image(full_prompt)
 
-        filename = f"{uuid.uuid4()}.jpg"
+        filename = f"{uuid.uuid4()}.png"
         save_dir = "static/product_images"
         os.makedirs(save_dir, exist_ok=True)
         filepath = os.path.join(save_dir, filename)
